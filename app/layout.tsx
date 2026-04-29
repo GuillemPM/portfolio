@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import { PageLoader } from "@/components/portfolio/PageLoader";
+import { Analytics } from "@vercel/analytics/next"
 import "./globals.css";
 
 const inter = Inter({
@@ -54,6 +55,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <PageLoader />
         {children}
+        <Analytics />
         <Script
           src="https://unpkg.com/@elevenlabs/convai-widget-embed"
           strategy="lazyOnload"
