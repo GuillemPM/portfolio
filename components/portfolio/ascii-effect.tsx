@@ -329,6 +329,8 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 }
 `
 
+type AsciiPostFx = Record<string, number | boolean>
+
 interface AsciiEffectImplOptions {
   cellSize?: number
   invert?: boolean
@@ -336,7 +338,7 @@ interface AsciiEffectImplOptions {
   style?: number
   resolution?: Vector2
   mousePos?: Vector2
-  postfx?: Record<string, any>
+  postfx?: AsciiPostFx
   glyphAtlas?: Texture | null
   glyphTiles?: number
   volumeShading?: boolean
@@ -442,7 +444,7 @@ export interface AsciiEffectProps {
   cellSize?: number
   invert?: boolean
   color?: boolean
-  postfx?: Record<string, any>
+  postfx?: AsciiPostFx
   resolution?: Vector2
   mousePos?: Vector2
   /** "terminal" = ASCII + blocks + katakana (like ref); omit for procedural boxes */

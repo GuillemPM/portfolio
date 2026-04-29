@@ -43,7 +43,7 @@ export function Hero() {
               {m.hero.body}
             </p>
             <div className="flex flex-wrap items-center gap-6">
-              <PrimaryButton>{m.cta.hero}</PrimaryButton>
+              <PrimaryButton href="/contact">{m.cta.hero}</PrimaryButton>
             </div>
           </div>
         </div>

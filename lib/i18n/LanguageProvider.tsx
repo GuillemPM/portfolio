@@ -35,8 +35,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(defaultLocale);
 
   useEffect(() => {
-    const stored = readStoredLocale();
-    if (stored) setLocaleState(stored);
+    const timeout = window.setTimeout(() => {
+      const stored = readStoredLocale();
+      if (stored) setLocaleState(stored);
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, []);
 
   useEffect(() => {

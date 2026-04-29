@@ -12,15 +12,21 @@ const navLink =
 const navLinkActive =
   "font-label tracking-[0.2em] text-[10px] font-medium uppercase text-blue-500 border-b border-blue-500/50 pb-1 hover:text-blue-400 hover:border-blue-400/30 transition-all duration-500 scale-95 active:scale-90";
 
-const primaryButton =
-  "relative px-8 py-4 text-label-caps uppercase text-white group overflow-hidden border border-on-tertiary-container/30 bg-transparent transition-all duration-300 hover:border-on-tertiary-container hover:shadow-[0_0_15px_rgba(72,108,255,0.4)]";
+export const primaryButtonClass =
+  "relative inline-flex overflow-hidden border border-on-tertiary-container/30 bg-transparent px-8 py-4 text-label-caps uppercase text-white transition-all duration-300 hover:border-on-tertiary-container hover:shadow-[0_0_15px_rgba(72,108,255,0.4)] group";
 
-export function PrimaryButton({ children }: { children: React.ReactNode }) {
+export function PrimaryButton({
+  children,
+  href,
+}: {
+  children: React.ReactNode;
+  href: string;
+}) {
   return (
-    <button type="button" className={primaryButton}>
+    <Link href={href} className={primaryButtonClass}>
       <span className="relative z-10">{children}</span>
       <div className="absolute inset-0 bg-on-tertiary-container/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-    </button>
+    </Link>
   );
 }
 
@@ -82,7 +88,7 @@ export function PortfolioHome() {
             <Link className={navLinkActive} href="#solutions">
               {m.nav.solutions}
             </Link>
-            <Link className={navLink} href="#contact">
+            <Link className={navLink} href="/contact">
               {m.nav.contact}
             </Link>
           </div>
@@ -90,7 +96,7 @@ export function PortfolioHome() {
             <LanguageSwitcher />
             <Link
               className="whitespace-nowrap font-label text-[10px] font-medium uppercase tracking-[0.2em] text-white/40 transition-all duration-500 hover:text-blue-400"
-              href="#contact"
+              href="/contact"
             >
               {m.nav.startProject}
             </Link>
@@ -130,7 +136,7 @@ export function PortfolioHome() {
                   transformación digital.
                 </p>
                 <div className="flex flex-wrap items-center gap-6">
-                  <PrimaryButton>{m.cta.hero}</PrimaryButton>
+                  <PrimaryButton href="/contact">{m.cta.hero}</PrimaryButton>
                 </div>
               </div>
             </div>
@@ -278,7 +284,7 @@ export function PortfolioHome() {
           </div>
           <div className="mt-16 text-center">
             <div className="inline-block">
-              <PrimaryButton>{m.cta.process}</PrimaryButton>
+              <PrimaryButton href="/contact">{m.cta.process}</PrimaryButton>
             </div>
           </div>
         </section>
@@ -318,12 +324,7 @@ export function PortfolioHome() {
               {m.contact.body}
             </p>
             <div className="flex flex-wrap justify-center gap-6">
-              <button
-                className="text-label-caps group relative border border-on-tertiary-container bg-on-tertiary-container/10 px-12 py-5 uppercase text-white transition-all duration-300 hover:bg-on-tertiary-container/20 hover:shadow-[0_0_30px_rgba(72,108,255,0.5)]"
-                type="button"
-              >
-                <span className="relative z-10">{m.cta.contact}</span>
-              </button>
+              <PrimaryButton href="/contact">{m.cta.contact}</PrimaryButton>
             </div>
             <p className="mt-8 text-body-md text-on-surface-variant">
               {m.contact.whatsappPrefix}{" "}

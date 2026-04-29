@@ -35,6 +35,12 @@ export type Messages = {
     body: string;
     whatsappPrefix: string;
     whatsappLink: string;
+    scheduleTitle: string;
+    scheduleBody: string;
+    scheduleCta: string;
+    whatsappTitle: string;
+    whatsappBody: string;
+    backHome: string;
   };
   hero: {
     name: string;
