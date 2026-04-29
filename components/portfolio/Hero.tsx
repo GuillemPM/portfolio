@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useLanguage } from "@/lib/i18n/LanguageProvider"
 import { PrimaryButton } from "./PortfolioHome"
 import { EffectScene } from "./effect-scene"
@@ -44,13 +43,7 @@ export function Hero() {
               {m.hero.body}
             </p>
             <div className="flex flex-wrap items-center gap-6">
-              <PrimaryButton>{m.cta.bookCall}</PrimaryButton>
-              <Link
-                className="border border-transparent px-8 py-4 text-label-caps text-on-surface-variant uppercase transition-colors duration-300 hover:border-white/10 hover:text-white"
-                href="#contact"
-              >
-                {m.nav.contact}
-              </Link>
+              <PrimaryButton>{m.cta.hero}</PrimaryButton>
             </div>
           </div>
         </div>

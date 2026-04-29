@@ -130,13 +130,7 @@ export function PortfolioHome() {
                   transformación digital.
                 </p>
                 <div className="flex flex-wrap items-center gap-6">
-                  <PrimaryButton>Agendar Llamada</PrimaryButton>
-                  <Link
-                    className="border border-transparent px-8 py-4 text-label-caps text-on-surface-variant uppercase transition-colors duration-300 hover:border-white/10 hover:text-white"
-                    href="#contact"
-                  >
-                    Contacto
-                  </Link>
+                  <PrimaryButton>{m.cta.hero}</PrimaryButton>
                 </div>
               </div>
             </div>
@@ -208,11 +202,6 @@ export function PortfolioHome() {
                 </div>
               );
             })}
-          </div>
-          <div className="mt-12 text-center">
-            <div className="inline-block">
-              <PrimaryButton>{m.cta.bookCall}</PrimaryButton>
-            </div>
           </div>
         </section>
 
@@ -289,7 +278,7 @@ export function PortfolioHome() {
           </div>
           <div className="mt-16 text-center">
             <div className="inline-block">
-              <PrimaryButton>{m.cta.bookCall}</PrimaryButton>
+              <PrimaryButton>{m.cta.process}</PrimaryButton>
             </div>
           </div>
         </section>
@@ -333,9 +322,20 @@ export function PortfolioHome() {
                 className="text-label-caps group relative border border-on-tertiary-container bg-on-tertiary-container/10 px-12 py-5 uppercase text-white transition-all duration-300 hover:bg-on-tertiary-container/20 hover:shadow-[0_0_30px_rgba(72,108,255,0.5)]"
                 type="button"
               >
-                <span className="relative z-10">{m.cta.bookCall}</span>
+                <span className="relative z-10">{m.cta.contact}</span>
               </button>
             </div>
+            <p className="mt-8 text-body-md text-on-surface-variant">
+              {m.contact.whatsappPrefix}{" "}
+              <a
+                className="text-on-tertiary-container transition-colors duration-300 hover:text-white"
+                href="/chat"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {m.contact.whatsappLink}
+              </a>
+            </p>
           </div>
         </section>
       </main>
@@ -353,7 +353,7 @@ export function PortfolioHome() {
           <div className="flex gap-8">
             <a
               className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
-              href="https://www.linkedin.com"
+              href="https://www.linkedin.com/gpadillam"
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -361,17 +361,11 @@ export function PortfolioHome() {
             </a>
             <a
               className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
-              href="https://github.com"
+              href="https://github.com/GuillemPM"
               rel="noopener noreferrer"
               target="_blank"
             >
               GitHub
-            </a>
-            <a
-              className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
-              href="#"
-            >
-              {m.footer.source}
             </a>
           </div>
         </div>

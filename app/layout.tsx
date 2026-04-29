@@ -54,7 +54,6 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <PageLoader />
         {children}
-        <elevenlabs-convai agent-id="agent_2201kq83gnnyftrtz1teed5zecch" />
         <Script
           src="https://unpkg.com/@elevenlabs/convai-widget-embed"
           strategy="lazyOnload"

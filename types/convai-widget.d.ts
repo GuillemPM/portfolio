@@ -8,6 +8,7 @@ declare module "react" {
         HTMLElement
       > & {
         "agent-id"?: string;
+        "text-contents"?: string;
       };
     }
   }

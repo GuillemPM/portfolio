@@ -14,7 +14,7 @@ import {
   PerspectiveCamera,
   Vector2,
 } from "three"
-import { AsciiEffect } from "./ascii-effect"
+import { AsciiEffect, DEFAULT_ASCII_PAGE_BACKGROUND } from "./ascii-effect"
 
 const PRIMARY_EFFECT_COLOR = "#486cff"
 
@@ -365,7 +365,7 @@ function SceneWithDelayedComposer({
 
   return (
     <>
-      {!transparentBackground && <color attach="background" args={["#000000"]} />}
+      {!transparentBackground && <color attach="background" args={[DEFAULT_ASCII_PAGE_BACKGROUND]} />}
       <Environment preset="studio" background={false} />
       {embed ? <SolutionCardLights /> : <HeroAreaLights />}
       <CameraHoverZoom isHovered={isHovered} />
@@ -528,12 +528,12 @@ export function EffectScene({
         }
         camera={{ position: [0, 0, CAMERA_BASE_Z], fov: 50 }}
         style={{
-          background: transparentBackground ? "transparent" : "#000000",
+          background: transparentBackground ? "transparent" : DEFAULT_ASCII_PAGE_BACKGROUND,
         }}
         onCreated={({ gl, scene }) => {
           gl.toneMappingExposure = 0.6
           if (transparentBackground) {
-            gl.setClearColor(new Color(0x000000), 0)
+            gl.setClearColor(new Color(DEFAULT_ASCII_PAGE_BACKGROUND), 0)
             scene.background = null
           }
 

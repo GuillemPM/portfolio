@@ -4,6 +4,12 @@ export const defaultLocale: Locale = "es";
 
 export type Messages = {
   nav: { solutions: string; contact: string; startProject: string };
+  widget: {
+    needHelp: string;
+    startCall: string;
+    inputPlaceholder: string;
+    inputPlaceholderNewConversation: string;
+  };
   trust: { label: string };
   solutions: {
     title: string;
@@ -14,12 +20,22 @@ export type Messages = {
       data: { title: string; text: string };
     };
   };
-  cta: { bookCall: string };
+  cta: {
+    hero: string;
+    solutions: string;
+    process: string;
+    contact: string;
+  };
   target: { title: string; subtitle: string; sectors: [string, string, string, string, string, string, string] };
   results: { title: string; items: [string, string, string] };
   process: { title: string; steps: [string, string, string] };
   why: { title: string; items: [string, string, string, string, string] };
-  contact: { title: string; body: string };
+  contact: {
+    title: string;
+    body: string;
+    whatsappPrefix: string;
+    whatsappLink: string;
+  };
   hero: {
     name: string;
     titleBefore: string;

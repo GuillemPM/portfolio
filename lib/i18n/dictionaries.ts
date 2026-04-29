@@ -6,6 +6,12 @@ const en: Messages = {
     contact: "Contact",
     startProject: "Start a project",
   },
+  widget: {
+    needHelp: "Talk to my AI version",
+    startCall: "Talk now",
+    inputPlaceholder: "Press the call button or write a message...",
+    inputPlaceholderNewConversation: "Start a chat with my AI version",
+  },
   trust: { label: "They trust me" },
   solutions: {
     title: "Solutions designed to grow.",
@@ -28,7 +34,12 @@ const en: Messages = {
       },
     },
   },
-  cta: { bookCall: "Book a call" },
+  cta: {
+    hero: "Let's talk about your project",
+    solutions: "Explore solutions",
+    process: "Start the process",
+    contact: "Book a call",
+  },
   target: {
     title: "I work with companies that want to move forward.",
     subtitle:
@@ -72,6 +83,8 @@ const en: Messages = {
   contact: {
     title: "Ready to take the next step?",
     body: "If your company needs a stronger digital presence, automation, or custom software, let’s talk.",
+    whatsappPrefix: "You can also message me on",
+    whatsappLink: "WhatsApp",
   },
   hero: {
     name: "Guillem Padilla",
@@ -90,6 +103,12 @@ const es: Messages = {
     solutions: "Soluciones",
     contact: "Contacto",
     startProject: "Iniciar proyecto",
+  },
+  widget: {
+    needHelp: "Habla con mi versión IA",
+    startCall: "Hablar ahora",
+    inputPlaceholder: "Pulsa el botón de llamar o escribe un mensaje...",
+    inputPlaceholderNewConversation: "Inicia un chat con mi versión IA",
   },
   trust: { label: "Confían en mí" },
   solutions: {
@@ -113,7 +132,12 @@ const es: Messages = {
       },
     },
   },
-  cta: { bookCall: "Agendar Llamada" },
+  cta: {
+    hero: "Hablemos de tu proyecto",
+    solutions: "Explorar soluciones",
+    process: "Empezar el proceso",
+    contact: "Reservar llamada",
+  },
   target: {
     title: "Trabajo con empresas que quieren avanzar.",
     subtitle:
@@ -157,6 +181,8 @@ const es: Messages = {
   contact: {
     title: "¿Preparado para dar el siguiente paso?",
     body: "Si tu empresa necesita mejor presencia digital, automatización o software a medida, hablemos.",
+    whatsappPrefix: "También puedes escribirme por",
+    whatsappLink: "WhatsApp",
   },
   hero: {
     name: "Guillem Padilla",
@@ -172,6 +198,12 @@ const ca: Messages = {
     solutions: "Solucions",
     contact: "Contacte",
     startProject: "Iniciar projecte",
+  },
+  widget: {
+    needHelp: "Parla amb la meva versió IA",
+    startCall: "Parla ara",
+    inputPlaceholder: "Prem el botó de trucar o escriu un missatge...",
+    inputPlaceholderNewConversation: "Inicia un xat amb la meva versió IA",
   },
   trust: { label: "Confien en mi" },
   solutions: {
@@ -195,7 +227,12 @@ const ca: Messages = {
       },
     },
   },
-  cta: { bookCall: "Reservar trucada" },
+  cta: {
+    hero: "Parlem del teu projecte",
+    solutions: "Explorar solucions",
+    process: "Començar el procés",
+    contact: "Reservar trucada",
+  },
   target: {
     title: "Treballo amb empreses que volen avançar.",
     subtitle:
@@ -239,6 +276,8 @@ const ca: Messages = {
   contact: {
     title: "A punt per al següent pas?",
     body: "Si la teva empresa necessita millor presència digital, automatització o programari a mida, parlem.",
+    whatsappPrefix: "També pots escriure’m per",
+    whatsappLink: "WhatsApp",
   },
   hero: {
     name: "Guillem Padilla",
