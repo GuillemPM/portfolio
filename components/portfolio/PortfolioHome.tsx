@@ -27,7 +27,9 @@ export function PrimaryButton({
   external?: boolean;
 }) {
   const pathname = usePathname();
-  const localizedHref = getLocalizedPath(pathname, href);
+  const localizedHref = external
+    ? href
+    : getLocalizedPath(pathname, href);
 
   return (
     <Link
@@ -121,7 +123,6 @@ function PortfolioNav({ m }: { m: Messages }) {
 
 export function PortfolioHome() {
   const { messages: m } = useLanguage();
-  const pathname = usePathname();
 
   return (
     <>
@@ -265,9 +266,18 @@ export function PortfolioHome() {
               <ul className="flex flex-col gap-6 text-body-lg text-on-surface-variant">
                 {m.why.items.map((item, i) => (
                   <li className="flex items-start gap-4" key={i}>
-                    <span className="material-symbols-outlined text-on-tertiary-container">
-                      done
-                    </span>
+                    <svg
+                      className="mt-0.5 h-5 w-5 shrink-0 text-on-tertiary-container"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden
+                    >
+                      <path
+                        d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
+                        fill="currentColor"
+                      />
+                    </svg>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -319,7 +329,7 @@ export function PortfolioHome() {
             <a
               className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
               href="https://www.linkedin.com/gpadillam"
-              rel="noopener noreferrer"
+              rel="me noopener noreferrer"
               target="_blank"
             >
               LinkedIn
@@ -327,7 +337,7 @@ export function PortfolioHome() {
             <a
               className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
               href="https://github.com/GuillemPM"
-              rel="noopener noreferrer"
+              rel="me noopener noreferrer"
               target="_blank"
             >
               GitHub

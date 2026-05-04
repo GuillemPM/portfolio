@@ -1,5 +1,4 @@
 import { MetadataRoute } from "next";
-import { locales } from "@/lib/i18n/types";
 
 const BASE_URL = "https://www.guillem.pm";
 

@@ -9,19 +9,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import { dictionaries } from "./dictionaries";
 import { defaultLocale, locales, type Locale, type Messages } from "./types";
 
 const STORAGE_KEY = "portfolio-locale";
-
-function readStoredLocale(): Locale | null {
-  if (typeof window === "undefined") return null;
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (raw && (locales as readonly string[]).includes(raw)) {
-    return raw as Locale;
-  }
-  return null;
-}
 
 type LanguageContextValue = {
   locale: Locale;
@@ -38,21 +30,24 @@ export function LanguageProvider({
   children: ReactNode;
   initialLocale?: Locale;
 }) {
+  const pathname = usePathname();
   const [locale, setLocaleState] = useState<Locale>(
     initialLocale ?? defaultLocale
   );
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const path = window.location.pathname;
-    const segment = path.split("/")[1];
-    const urlLocale = locales.includes(segment as Locale)
-      ? (segment as Locale)
-      : null;
-    if (urlLocale && urlLocale !== locale) {
-      setLocaleState(urlLocale);
+    const segments = pathname.split("/").filter(Boolean);
+    const first = segments[0];
+    const urlLocale: Locale =
+      first && (locales as readonly string[]).includes(first)
+        ? (first as Locale)
+        : defaultLocale;
+    if (urlLocale !== locale) {
+      queueMicrotask(() => {
+        setLocaleState(urlLocale);
+      });
     }
-  }, []);
+  }, [pathname, locale]);
 
   useEffect(() => {
     document.documentElement.lang =

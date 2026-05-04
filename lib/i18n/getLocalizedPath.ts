@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { locales, type Locale } from "./types";
 
 export function getLocalizedPath(

@@ -45,7 +45,6 @@ export async function generateMetadata({
   const canonicalUrl = locale === "es" 
     ? "https://www.guillem.pm" 
     : `https://www.guillem.pm/${locale}`;
-  const selfReference = HREFLANG_URLS[locale as keyof typeof HREFLANG_URLS] ?? "https://www.guillem.pm";
 
   return {
     title: "Guillem Padilla - Software Architect",
@@ -61,7 +60,6 @@ export async function generateMetadata({
         en: HREFLANG_URLS.en,
         ca: HREFLANG_URLS.ca,
         "x-default": HREFLANG_URLS.es,
-        [locale]: selfReference,
       },
     },
     openGraph: {
@@ -108,16 +106,6 @@ export default async function LocaleLayout({
     >
       <head>
         <meta name="theme-color" content="#0a0a0b" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          crossOrigin="anonymous"
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
