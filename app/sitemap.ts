@@ -3,45 +3,43 @@ import { locales } from "@/lib/i18n/types";
 
 const BASE_URL = "https://www.guillem.pm";
 
+const HREFLANG_URLS = {
+  es: "https://www.guillem.pm",
+  en: "https://www.guillem.pm/en",
+  ca: "https://www.guillem.pm/ca",
+};
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const items: MetadataRoute.Sitemap = [];
-
-  for (const locale of locales) {
-    const prefix = locale === "es" ? "" : `/${locale}`;
-    const isDefault = locale === "es";
-
-    items.push({
-      url: `${BASE_URL}${prefix || "/"}`,
+  return [
+    {
+      url: BASE_URL,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: isDefault ? 1 : 0.9,
+      priority: 1,
       images: ["https://www.guillem.pm/logo.webp"],
       alternates: {
         languages: {
-          es: "https://www.guillem.pm",
-          en: "https://www.guillem.pm/en",
-          ca: "https://www.guillem.pm/ca",
-          "x-default": "https://www.guillem.pm",
+          es: HREFLANG_URLS.es,
+          en: HREFLANG_URLS.en,
+          ca: HREFLANG_URLS.ca,
+          "x-default": HREFLANG_URLS.es,
         },
       },
-    });
-
-    items.push({
-      url: `${BASE_URL}${prefix}/contact`,
+    },
+    {
+      url: `${BASE_URL}/contact`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
       images: ["https://www.guillem.pm/logo.webp"],
       alternates: {
         languages: {
-          es: "https://www.guillem.pm/contact",
-          en: "https://www.guillem.pm/en/contact",
-          ca: "https://www.guillem.pm/ca/contact",
-          "x-default": "https://www.guillem.pm/contact",
+          es: `${HREFLANG_URLS.es}/contact`,
+          en: `${HREFLANG_URLS.en}/contact`,
+          ca: `${HREFLANG_URLS.ca}/contact`,
+          "x-default": `${HREFLANG_URLS.es}/contact`,
         },
       },
-    });
-  }
-
-  return items;
+    },
+  ];
 }

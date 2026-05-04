@@ -29,6 +29,12 @@ const SEO_DESCRIPTIONS = {
   ca: "Arquitecte de programari: eines internes, integracions d'IA, plataformes i transformació digital per a empreses ambicioses.",
 } as const;
 
+const HREFLANG_URLS = {
+  es: "https://www.guillem.pm",
+  en: "https://www.guillem.pm/en",
+  ca: "https://www.guillem.pm/ca",
+};
+
 export async function generateMetadata({
   params,
 }: {
@@ -39,6 +45,7 @@ export async function generateMetadata({
   const canonicalUrl = locale === "es" 
     ? "https://www.guillem.pm" 
     : `https://www.guillem.pm/${locale}`;
+  const selfReference = HREFLANG_URLS[locale as keyof typeof HREFLANG_URLS] ?? "https://www.guillem.pm";
 
   return {
     title: "Guillem Padilla - Software Architect",
@@ -50,10 +57,11 @@ export async function generateMetadata({
     alternates: {
       canonical: canonicalUrl,
       languages: {
-        es: "https://www.guillem.pm",
-        en: "https://www.guillem.pm/en",
-        ca: "https://www.guillem.pm/ca",
-        "x-default": "https://www.guillem.pm",
+        es: HREFLANG_URLS.es,
+        en: HREFLANG_URLS.en,
+        ca: HREFLANG_URLS.ca,
+        "x-default": HREFLANG_URLS.es,
+        [locale]: selfReference,
       },
     },
     openGraph: {
