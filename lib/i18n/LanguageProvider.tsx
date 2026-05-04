@@ -31,16 +31,27 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+export function LanguageProvider({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode;
+  initialLocale?: Locale;
+}) {
+  const [locale, setLocaleState] = useState<Locale>(
+    initialLocale ?? defaultLocale
+  );
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      const stored = readStoredLocale();
-      if (stored) setLocaleState(stored);
-    }, 0);
-
-    return () => window.clearTimeout(timeout);
+    if (typeof window === "undefined") return;
+    const path = window.location.pathname;
+    const segment = path.split("/")[1];
+    const urlLocale = locales.includes(segment as Locale)
+      ? (segment as Locale)
+      : null;
+    if (urlLocale && urlLocale !== locale) {
+      setLocaleState(urlLocale);
+    }
   }, []);
 
   useEffect(() => {

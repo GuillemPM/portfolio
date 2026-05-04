@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { locales, type Locale } from "@/lib/i18n/types";
 
@@ -15,7 +16,13 @@ const idle = "text-white/40 hover:text-blue-400";
 const active = "text-blue-500";
 
 export function LanguageSwitcher() {
-  const { locale, setLocale } = useLanguage();
+  const router = useRouter();
+  const { locale } = useLanguage();
+
+  const handleLocaleChange = (code: Locale) => {
+    const path = code === "es" ? "" : `/${code}`;
+    router.push(path || "/");
+  };
 
   return (
     <div
@@ -28,7 +35,7 @@ export function LanguageSwitcher() {
           key={code}
           type="button"
           className={`${base} ${locale === code ? active : idle}`}
-          onClick={() => setLocale(code)}
+          onClick={() => handleLocaleChange(code)}
           lang={code === "ca" ? "ca" : code === "es" ? "es" : "en"}
         >
           {labels[code]}

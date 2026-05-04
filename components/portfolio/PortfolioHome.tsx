@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { getLocalizedPath } from "@/lib/i18n/getLocalizedPath";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Hero } from "./Hero";
 import { EffectScene } from "./effect-scene";
@@ -18,12 +20,22 @@ export const primaryButtonClass =
 export function PrimaryButton({
   children,
   href,
+  external,
 }: {
   children: React.ReactNode;
   href: string;
+  external?: boolean;
 }) {
+  const pathname = usePathname();
+  const localizedHref = getLocalizedPath(pathname, href);
+
   return (
-    <Link href={href} className={primaryButtonClass}>
+    <Link
+      href={localizedHref}
+      className={primaryButtonClass}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+    >
       <span className="relative z-10">{children}</span>
       <div className="absolute inset-0 bg-on-tertiary-container/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
     </Link>
@@ -71,99 +83,51 @@ function solutionCopy(m: Messages, id: SolutionId) {
   return m.solutions.cards[id];
 }
 
+function PortfolioNav({ m }: { m: Messages }) {
+  const pathname = usePathname();
+
+  const isContact = pathname.includes("/contact");
+
+  return (
+    <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-2xl transition-transform duration-300">
+      <div className="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-8 py-6 md:px-16">
+        <Link
+          className="shrink-0 text-2xl font-black tracking-tighter text-white transition-opacity hover:opacity-90"
+          href={getLocalizedPath(pathname, "/")}
+        >
+          GP.
+        </Link>
+        <div className="hidden items-center gap-12 md:flex">
+          <Link className={isContact ? navLink : navLinkActive} href={getLocalizedPath(pathname, "/")}>
+            {m.nav.solutions}
+          </Link>
+          <Link className={isContact ? navLinkActive : navLink} href={getLocalizedPath(pathname, "/contact")}>
+            {m.nav.contact}
+          </Link>
+        </div>
+        <div className="flex items-center gap-4 md:gap-8">
+          <LanguageSwitcher />
+          <Link
+            className="whitespace-nowrap font-label text-[10px] font-medium uppercase tracking-[0.2em] text-white/40 transition-all duration-500 hover:text-blue-400"
+            href={getLocalizedPath(pathname, "/contact")}
+          >
+            {m.nav.startProject}
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
 export function PortfolioHome() {
   const { messages: m } = useLanguage();
+  const pathname = usePathname();
 
   return (
     <>
-      <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-2xl transition-transform duration-300">
-        <div className="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-8 py-6 md:px-16">
-          <Link
-            className="shrink-0 text-2xl font-black tracking-tighter text-white transition-opacity hover:opacity-90"
-            href="/"
-          >
-            GP.
-          </Link>
-          <div className="hidden items-center gap-12 md:flex">
-            <Link className={navLinkActive} href="#solutions">
-              {m.nav.solutions}
-            </Link>
-            <Link className={navLink} href="/contact">
-              {m.nav.contact}
-            </Link>
-          </div>
-          <div className="flex items-center gap-4 md:gap-8">
-            <LanguageSwitcher />
-            <Link
-              className="whitespace-nowrap font-label text-[10px] font-medium uppercase tracking-[0.2em] text-white/40 transition-all duration-500 hover:text-blue-400"
-              href="/contact"
-            >
-              {m.nav.startProject}
-            </Link>
-          </div>
-        </div>
-      </nav>
-
+      <PortfolioNav m={m} />
       <main className="min-h-0 grow pt-[120px]">
-        {/* <section className="relative z-0 mb-section-gap w-full overflow-hidden">
-          <div className="pointer-events-none absolute inset-0 z-0 min-h-[819px]">
-            <HeroAsciiBackgroundLazy className="h-full min-h-[819px] w-full" />
-          </div>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-[1] min-h-[819px] bg-gradient-to-r from-primary-container from-[18%] via-primary-container/75 to-primary-container/15"
-          />
-          <div className="relative z-10 mx-auto flex min-h-[819px] max-w-8xl flex-col justify-center overflow-hidden px-8 md:px-16">
-            <div className="absolute bottom-0 left-1/4 top-0 z-[2] hidden w-[0.5px] bg-white/5 lg:block" />
-            <div className="absolute bottom-0 right-1/4 top-0 z-[2] hidden w-[0.5px] bg-white/5 lg:block" />
-            <div className="relative z-10 grid grid-cols-12 gap-gutter">
-              <div className="col-span-12 lg:col-span-9 lg:col-start-2">
-                <div className="mb-6 flex items-baseline gap-4 sm:mb-8">
-                  <div className="h-px w-12 shrink-0 self-center bg-on-tertiary-container" />
-                  <h1 className="m-0 text-2xl font-semibold leading-none tracking-tight text-white sm:text-3xl">
-                    Guillem Padilla
-                  </h1>
-                </div>
-                <p className="mb-8 max-w-[900px] text-headline-xl text-white leading-[0.95]">
-                  Software para empresas que entran en la{" "}
-                  <span className="text-on-tertiary-container text-glow">
-                    era de la IA.
-                  </span>
-                </p>
-                <p className="mb-12 max-w-[600px] text-body-lg text-on-surface-variant">
-                  Ayudo a empresas ambiciosas a construir herramientas internas,
-                  integraciones de IA, plataformas modernas y sistemas de
-                  transformación digital.
-                </p>
-                <div className="flex flex-wrap items-center gap-6">
-                  <PrimaryButton href="/contact">{m.cta.hero}</PrimaryButton>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section> */}
-        <Hero/>
-
-        {/* Trust strip ("Confían en mí") — off for now; restore by uncommenting.
-        <section className="mb-section-gap border-y border-white/5 py-12">
-          <div className="mx-auto flex max-w-8xl flex-col items-center justify-between gap-8 px-8 opacity-40 md:flex-row md:px-16">
-            <span className="text-[10px] font-label uppercase tracking-widest">
-              {m.trust.label}
-            </span>
-            <div className="flex flex-wrap items-center justify-center gap-12 md:justify-end md:gap-24">
-              <span className="text-headline-lg text-xl font-bold tracking-tighter">
-                NEXUS
-              </span>
-              <span className="text-headline-lg text-xl font-bold tracking-widest">
-                VANGUARD
-              </span>
-              <span className="text-headline-lg text-xl font-bold tracking-tight">
-                SYNTHESIS
-              </span>
-            </div>
-          </div>
-        </section>
-        */}
+        <Hero />
 
         <section
           className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16"
