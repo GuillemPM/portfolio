@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
-import { PageLoader } from "@/components/portfolio/PageLoader";
 import { Analytics } from "@vercel/analytics/next"
 import { locales } from "@/lib/i18n/types";
 import "./globals.css";
@@ -125,7 +124,6 @@ export default async function LocaleLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        <PageLoader />
         {children}
         <Analytics />
         <Script
