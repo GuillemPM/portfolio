@@ -328,7 +328,7 @@ export function PortfolioHome() {
           <div className="flex gap-8">
             <a
               className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
-              href="https://www.linkedin.com/gpadillam"
+              href="https://www.linkedin.com/in/gpadillam"
               rel="me noopener noreferrer"
               target="_blank"
             >

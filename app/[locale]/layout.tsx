@@ -116,8 +116,8 @@ export default async function LocaleLayout({
               jobTitle: "Software Architect",
               description: description,
               sameAs: [
-                "https://www.linkedin.com/in/guillempadilla",
-                "https://github.com/guillempadilla",
+                "https://www.linkedin.com/in/gpadillam",
+                "https://github.com/GuillemPM",
               ],
             }),
           }}
