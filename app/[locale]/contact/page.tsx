@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { ContactPage } from "@/components/portfolio/ContactPage";
-import { ConvaiWidget } from "@/components/portfolio/ConvaiWidget";
+import { dictionaries } from "@/lib/i18n/dictionaries";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
-import { defaultLocale, type Locale } from "@/lib/i18n/types";
+import {
+  SITE_NAME,
+  languageAlternates,
+  localizedUrl,
+  openGraphLocale,
+  resolveSiteLocale,
+} from "@/lib/i18n/siteMetadata";
+import { locales, type Locale } from "@/lib/i18n/types";
 
-const HREFLANG_CONTACT = {
-  es: "https://www.guillem.pm/contact",
-  en: "https://www.guillem.pm/en/contact",
-  ca: "https://www.guillem.pm/ca/contact",
-} as const;
-
-function resolveLocale(raw: string): Locale {
-  if (raw === "en" || raw === "ca" || raw === "es") return raw;
-  return defaultLocale;
+export function generateStaticParams(): { locale: string }[] {
+  return locales.map((locale) => ({ locale }));
 }
 
 export async function generateMetadata({
@@ -21,21 +21,31 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale: raw } = await params;
-  const locale = resolveLocale(raw);
-  const canonical = HREFLANG_CONTACT[locale];
+  const locale = resolveSiteLocale(raw);
+  const m = dictionaries[locale];
+  const canonical = localizedUrl(locale, "/contact");
+  const title = m.contact.title;
+  const description = m.contact.body;
 
   return {
+    title,
+    description,
     alternates: {
       canonical,
-      languages: {
-        es: HREFLANG_CONTACT.es,
-        en: HREFLANG_CONTACT.en,
-        ca: HREFLANG_CONTACT.ca,
-        "x-default": HREFLANG_CONTACT.es,
-      },
+      languages: languageAlternates("/contact"),
     },
     openGraph: {
+      title: `${title} | ${SITE_NAME}`,
+      description,
       url: canonical,
+      siteName: SITE_NAME,
+      locale: openGraphLocale(locale),
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} | ${SITE_NAME}`,
+      description,
     },
   };
 }
@@ -46,12 +56,11 @@ export default async function Contact({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const validLocale: Locale = locale === "en" || locale === "ca" ? locale : defaultLocale;
+  const validLocale: Locale = resolveSiteLocale(locale);
 
   return (
     <LanguageProvider initialLocale={validLocale}>
       <ContactPage />
-      <ConvaiWidget />
     </LanguageProvider>
   );
 }

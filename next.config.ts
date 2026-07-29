@@ -27,14 +27,10 @@ const cspDirectives = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["192.168.1.36"],
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-        pathname: "/**",
-      },
-    ],
+    formats: ["image/avif", "image/webp"],
+    qualities: [75, 90],
   },
   async headers() {
     const headers: { key: string; value: string }[] = [
@@ -54,7 +50,7 @@ const nextConfig: NextConfig = {
       },
       {
         key: "Permissions-Policy",
-        value: "camera=(), microphone=(self), geolocation=()",
+        value: "camera=(), microphone=(), geolocation=()",
       },
     );
     return [{ source: "/:path*", headers }];

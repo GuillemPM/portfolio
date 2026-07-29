@@ -24,6 +24,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|chat|schedule|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|models).*)",
+    // Skip static assets (public/*) and paths already excluded — locale rewrite was 404ing /images/*, /logo.webp, etc.
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|models|images/)(?!.*\\.).*)",
   ],
 };

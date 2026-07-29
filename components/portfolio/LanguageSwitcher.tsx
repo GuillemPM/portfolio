@@ -12,8 +12,8 @@ const labels: Record<Locale, string> = {
 
 const base =
   "font-label min-w-[2.5rem] rounded px-2 py-1 text-[10px] font-medium uppercase tracking-[0.15em] transition-all duration-300";
-const idle = "text-white/40 hover:text-blue-400";
-const active = "text-blue-500";
+const idle = "text-on-surface-variant hover:text-blue-600";
+const active = "text-blue-600";
 
 export function LanguageSwitcher() {
   const router = useRouter();

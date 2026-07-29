@@ -45,7 +45,7 @@ function createGlyphTexture(characters: string[], size = 64, font = "62px monosp
 }
 
 /** Matches `app/globals.css` --color-primary-container; shadows / empty draw toward this instead of #000. */
-export const DEFAULT_ASCII_PAGE_BACKGROUND = "#0a0a0b"
+export const DEFAULT_ASCII_PAGE_BACKGROUND = "#ffffff"
 
 const fragmentShader = `
 // Basic uniforms

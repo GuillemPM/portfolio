@@ -1,21 +1,27 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getLocalizedPath } from "@/lib/i18n/getLocalizedPath";
-import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Hero } from "./Hero";
-import { EffectScene } from "./effect-scene";
+import type { BlogPostMeta } from "@/lib/blog/types";
+import {
+  certificationMeta,
+  certificationOrder,
+  secondaryBadgeMeta,
+  secondaryBadgeOrder,
+} from "@/lib/certifications";
 import type { Messages } from "@/lib/i18n/types";
+import { Hero } from "./Hero";
+import { SiteNav } from "./SiteNav";
 
-const navLink =
-  "font-label tracking-[0.2em] text-[10px] font-medium uppercase text-white/40 hover:text-blue-400 hover:border-blue-400/30 transition-all duration-500 scale-95 active:scale-90";
-const navLinkActive =
-  "font-label tracking-[0.2em] text-[10px] font-medium uppercase text-blue-500 border-b border-blue-500/50 pb-1 hover:text-blue-400 hover:border-blue-400/30 transition-all duration-500 scale-95 active:scale-90";
+function isSvgSrc(src: string): boolean {
+  return src.endsWith(".svg");
+}
 
 export const primaryButtonClass =
-  "relative inline-flex overflow-hidden border border-on-tertiary-container/30 bg-transparent px-8 py-4 text-label-caps uppercase text-white transition-all duration-300 hover:border-on-tertiary-container hover:shadow-[0_0_15px_rgba(72,108,255,0.4)] group";
+  "relative inline-flex overflow-hidden border border-on-tertiary-container/40 bg-transparent px-8 py-4 text-label-caps uppercase text-on-background transition-all duration-300 hover:border-on-tertiary-container hover:bg-on-tertiary-container/5 hover:shadow-[0_0_15px_rgba(37,99,235,0.15)] group";
 
 export function PrimaryButton({
   children,
@@ -25,11 +31,9 @@ export function PrimaryButton({
   children: React.ReactNode;
   href: string;
   external?: boolean;
-}) {
+}): React.ReactElement {
   const pathname = usePathname();
-  const localizedHref = external
-    ? href
-    : getLocalizedPath(pathname, href);
+  const localizedHref = external ? href : getLocalizedPath(pathname, href);
 
   return (
     <Link
@@ -44,307 +48,261 @@ export function PrimaryButton({
   );
 }
 
-const solutionMeta = [
-  {
-    id: "custom" as const,
-    modelSrc: "/models/wbJEv2ak.glb",
-    modelScale: 2,
-    asciiCellSize: 1,
-    modelRotation: [0, -4, 0] as [number, number, number],
-  },
-  {
-    id: "ai" as const,
-    modelSrc: "/models/l0OhU-01.glb",
-    modelScale: 1.7,
-    asciiCellSize: 1,
-    modelRotation: [0, -0.5, 0] as [number, number, number],
-    modelPosition: [0, -0.5, 0] as [number, number, number],
-  },
-  {
-    id: "web" as const,
-    modelSrc: "/models/ZdK4WKbz.glb",
-    modelScale: 0.5,
-    asciiCellSize: 1,
-    float: true,
-    modelRotation: [-0.15, -1.8, -0.25] as [number, number, number],
-  },
-  {
-    id: "data" as const,
-    modelSrc: "/models/7KxckLro.glb",
-    modelScale: 1,
-    asciiCellSize: 1,
-    float: true,
-    modelRotation: [0, -0.5, 0] as [number, number, number],
-    modelPosition: [0, -0.3, -1] as [number, number, number],
-  },
-] as const;
-
-type SolutionId = (typeof solutionMeta)[number]["id"];
-
-function solutionCopy(m: Messages, id: SolutionId) {
-  return m.solutions.cards[id];
+function formatPostDate(date: string, locale: string): string {
+  if (!date) return "";
+  try {
+    return new Intl.DateTimeFormat(locale === "ca" ? "ca-ES" : locale === "en" ? "en-GB" : "es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date(date));
+  } catch {
+    return date;
+  }
 }
 
-function PortfolioNav({ m }: { m: Messages }) {
-  const pathname = usePathname();
-
-  const isContact = pathname.includes("/contact");
-
+function SiteFooter({ m }: { m: Messages }): React.ReactElement {
   return (
-    <nav className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0A0A0B]/80 backdrop-blur-2xl transition-transform duration-300">
-      <div className="mx-auto flex w-full max-w-8xl items-center justify-between gap-4 px-8 py-6 md:px-16">
-        <Link
-          className="shrink-0 text-2xl font-black tracking-tighter text-white transition-opacity hover:opacity-90"
-          href={getLocalizedPath(pathname, "/")}
-        >
-          GP.
-        </Link>
-        <div className="hidden items-center gap-12 md:flex">
-          <Link className={isContact ? navLink : navLinkActive} href={getLocalizedPath(pathname, "/")}>
-            {m.nav.solutions}
-          </Link>
-          <Link className={isContact ? navLinkActive : navLink} href={getLocalizedPath(pathname, "/contact")}>
-            {m.nav.contact}
-          </Link>
+    <footer className="mt-32 w-full border-t border-subtle bg-primary-container">
+      <div className="mx-auto flex max-w-8xl flex-col items-end justify-between gap-8 px-8 py-24 md:flex-row md:px-16">
+        <div className="flex flex-col gap-4">
+          <div className="text-4xl font-black tracking-tighter text-on-background/10">GP.</div>
+          <div className="text-[9px] font-sans uppercase tracking-widest text-on-surface-variant">
+            {m.footer.line}
+          </div>
         </div>
-        <div className="flex items-center gap-4 md:gap-8">
-          <LanguageSwitcher />
-          <Link
-            className="whitespace-nowrap font-label text-[10px] font-medium uppercase tracking-[0.2em] text-white/40 transition-all duration-500 hover:text-blue-400"
-            href={getLocalizedPath(pathname, "/contact")}
+        <div className="flex gap-8">
+          <a
+            className="text-[9px] font-sans uppercase tracking-widest text-on-surface-variant opacity-100 transition-colors duration-300 hover:text-blue-600 hover:opacity-80"
+            href="https://www.linkedin.com/in/gpadillam"
+            rel="me noopener noreferrer"
+            target="_blank"
           >
-            {m.nav.startProject}
-          </Link>
+            LinkedIn
+          </a>
+          <a
+            className="text-[9px] font-sans uppercase tracking-widest text-on-surface-variant opacity-100 transition-colors duration-300 hover:text-blue-600 hover:opacity-80"
+            href="https://github.com/GuillemPM"
+            rel="me noopener noreferrer"
+            target="_blank"
+          >
+            GitHub
+          </a>
         </div>
       </div>
-    </nav>
+    </footer>
   );
 }
 
-export function PortfolioHome() {
-  const { messages: m } = useLanguage();
+export function PortfolioHome({
+  latestPosts,
+}: {
+  latestPosts: BlogPostMeta[];
+}): React.ReactElement {
+  const { messages: m, locale } = useLanguage();
+  const pathname = usePathname();
 
   return (
     <>
-      <PortfolioNav m={m} />
-      <main className="min-h-0 grow pt-[120px]">
+      <SiteNav m={m} />
+      <main className="min-h-0 grow pt-site-nav">
         <Hero />
 
+        <section className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16" id="about">
+          <h2 className="mb-8 text-headline-lg text-on-background">{m.about.title}</h2>
+          <div className="grid grid-cols-12 items-start gap-gutter">
+            <div className="order-2 col-span-12 flex flex-col gap-6 lg:order-1 lg:col-span-7">
+              {m.about.paragraphs.map((paragraph, i) => (
+                <p className="text-body-lg text-on-surface-variant" key={i}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+            <div className="order-1 col-span-12 flex justify-center lg:order-2 lg:col-span-4 lg:col-start-9 lg:justify-end">
+              <div className="-rotate-2 rounded-2xl shadow-[0_20px_45px_-10px_rgba(0,0,0,0.45)]">
+                <Image
+                  alt={m.hero.name}
+                  className="w-full max-w-sm rounded-2xl object-cover object-center lg:max-w-none"
+                  height={640}
+                  quality={90}
+                  sizes="(min-width: 1024px) 28vw, (min-width: 640px) 24rem, 100vw"
+                  src="/images/guillermo-about.png"
+                  width={480}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section
           className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16"
-          id="solutions"
+          id="certifications"
         >
-          <div className="mb-16">
-            <h2 className="text-headline-lg text-white">{m.solutions.title}</h2>
+          <div className="mb-4">
+            <h2 className="text-headline-lg text-on-background">{m.certifications.title}</h2>
           </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            {solutionMeta.map((card) => {
-              const copy = solutionCopy(m, card.id);
+          <p className="text-body-lg mb-12 max-w-2xl text-on-surface-variant">
+            {m.certifications.subtitle}
+          </p>
+          <div className="grid grid-cols-1 gap-12 sm:grid-cols-3">
+            {certificationOrder.map((id, index) => {
+              const cert = m.certifications.items[id];
+              const meta = certificationMeta[id];
               return (
-                <div
-                  className="relative flex h-full min-h-[11rem] flex-col border border-white/5 bg-surface-container-lowest/50 p-8 transition-colors duration-300 hover:bg-surface-container-low"
-                  key={card.id}
-                >
-                  <div className="pointer-events-none absolute right-3 top-3 z-10 h-[5.5rem] w-[5.5rem] sm:right-4 sm:top-4 sm:h-24 sm:w-24">
-                    <EffectScene
-                      embed
-                      transparentBackground
-                      modelSrc={card.modelSrc}
-                      modelScale={card.modelScale}
-                      modelPosition={
-                        "modelPosition" in card ? card.modelPosition : undefined
-                      }
-                      modelRotation={card.modelRotation}
-                      float={"float" in card ? card.float : undefined}
-                      asciiCellSize={card.asciiCellSize}
-                      enableZoom={false}
-                      className="h-full w-full min-h-0"
+                <article className="flex flex-col items-center text-center" key={id}>
+                  <a
+                    className="transition-opacity duration-300 hover:opacity-90"
+                    href={meta.credentialUrl}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <Image
+                      alt={meta.badgeAlt}
+                      className="h-44 w-44 object-contain sm:h-52 sm:w-52"
+                      fetchPriority={index === 0 ? "high" : undefined}
+                      height={208}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      quality={90}
+                      sizes="208px"
+                      src={meta.badgeSrc}
+                      unoptimized={isSvgSrc(meta.badgeSrc)}
+                      width={208}
                     />
-                  </div>
-                  <div className="min-h-0 flex-1" aria-hidden />
-                  <div>
-                    <h3 className="mb-3 pr-[5.5rem] text-xl font-medium text-white sm:pr-28">
-                      {copy.title}
-                    </h3>
-                    <p className="text-body-md pr-[5.5rem] text-sm text-on-surface-variant/70 sm:pr-28">
-                      {copy.text}
-                    </p>
-                  </div>
-                </div>
+                  </a>
+                  <p className="text-label-caps mt-6 text-[10px] text-on-tertiary-container">
+                    {cert.issuer}
+                  </p>
+                  <h3 className="mt-2 max-w-[16rem] text-lg font-medium text-on-background">
+                    {cert.title}
+                  </h3>
+                  <a
+                    className="text-label-caps mt-4 text-[10px] uppercase text-on-surface-variant transition-colors duration-300 hover:text-on-background"
+                    href={meta.credentialUrl}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {m.certifications.viewCredential} →
+                  </a>
+                </article>
               );
             })}
+            <article className="flex flex-col items-center justify-center text-center">
+              <div className="flex h-44 w-44 items-center justify-center border border-dashed border-outline sm:h-52 sm:w-52">
+                <p className="text-label-caps text-[10px] text-on-surface-variant">
+                  {m.certifications.comingSoon}
+                </p>
+              </div>
+              <p className="text-body-md mt-6 max-w-[12rem] text-sm text-on-surface-variant">
+                {m.certifications.moreOnTheWay}
+              </p>
+            </article>
           </div>
+
+          {secondaryBadgeOrder.length > 0 ? (
+            <div className="mt-16 border-t border-subtle pt-12">
+              <h3 className="text-label-caps mb-8 text-[10px] text-on-surface-variant">
+                {m.certifications.secondaryTitle}
+              </h3>
+              <ul className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-4">
+                {secondaryBadgeOrder.map((id) => {
+                  const copy = m.certifications.secondaryItems[id];
+                  const meta = secondaryBadgeMeta[id];
+                  return (
+                    <li className="flex flex-col items-center text-center" key={id}>
+                      <a
+                        className="group block origin-center"
+                        href={meta.credentialUrl}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        <Image
+                          alt={meta.badgeAlt}
+                          className="h-28 w-28 object-contain transition-transform duration-300 ease-out will-change-transform group-hover:scale-105 group-hover:-rotate-6 group-focus-visible:scale-105 group-focus-visible:-rotate-4 motion-reduce:transition-none motion-reduce:group-hover:scale-100 motion-reduce:group-hover:rotate-0 sm:h-32 sm:w-32"
+                          height={128}
+                          quality={90}
+                          sizes="128px"
+                          src={meta.badgeSrc}
+                          unoptimized={isSvgSrc(meta.badgeSrc)}
+                          width={128}
+                        />
+                      </a>
+                      <p className="text-label-caps mt-4 text-[10px] text-on-tertiary-container">
+                        {copy.issuer}
+                      </p>
+                      <a
+                        className="text-label-caps mt-2 text-[9px] uppercase text-on-surface-variant transition-colors duration-300 hover:text-on-background"
+                        href={meta.credentialUrl}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        {m.certifications.viewCredential} →
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
-        <section
-          className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16"
-          id="target"
-        >
-          <div className="grid grid-cols-12 gap-gutter">
-            <div className="mb-12 col-span-12 lg:col-span-5 lg:mb-0">
-              <h2 className="mb-6 text-headline-lg text-white">
-                {m.target.title}
-              </h2>
-              <p className="text-body-lg text-on-surface-variant">
-                {m.target.subtitle}
+        <section className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16" id="blog">
+          <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h2 className="text-headline-lg text-on-background">{m.blog.latestTitle}</h2>
+              <p className="text-body-lg mt-4 max-w-xl text-on-surface-variant">
+                {m.blog.subtitle}
               </p>
             </div>
-            <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-              <ul className="flex flex-col gap-6">
-                {m.target.sectors.map((item, i) => (
-                  <li
-                    className="text-body-lg border-b border-white/5 pb-4 text-2xl text-white"
-                    key={i}
+            <PrimaryButton href="/blog">{m.cta.viewAllPosts}</PrimaryButton>
+          </div>
+          {latestPosts.length === 0 ? (
+            <p className="text-body-lg text-on-surface-variant">{m.blog.empty}</p>
+          ) : (
+            <ul className="flex flex-col gap-6">
+              {latestPosts.map((post) => (
+                <li key={post.slug}>
+                  <Link
+                    className="group block border border-subtle bg-primary-container p-8 transition-colors hover:bg-surface-container-low"
+                    href={getLocalizedPath(pathname, `/blog/${post.slug}`)}
                   >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section
-          className="relative mx-auto mb-section-gap max-w-8xl px-8 md:px-16"
-          id="results"
-        >
-          <div className="mb-16 text-center">
-            <h2 className="text-headline-lg text-white">{m.results.title}</h2>
-          </div>
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {m.results.items.map((title, i) => (
-              <div
-                className="border-t border-on-tertiary-container/30 bg-gradient-to-b from-white/[0.02] to-transparent px-6 py-12 text-center"
-                key={i}
-              >
-                <h3 className="mb-4 text-2xl text-white text-headline-lg">
-                  {title}
-                </h3>
-                <div className="mx-auto h-0.5 w-12 bg-on-tertiary-container" />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section
-          className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16"
-          id="process"
-        >
-          <div className="mb-16">
-            <h2 className="text-headline-lg text-white">{m.process.title}</h2>
-          </div>
-          <div className="relative grid grid-cols-1 gap-12 md:grid-cols-3">
-            <div className="absolute bottom-6 left-1/2 top-6 z-0 w-px -translate-x-1/2 bg-white/10 md:hidden" />
-            <div className="absolute left-[calc(16.666667%+1.5rem)] right-[calc(16.666667%+1.5rem)] top-6 z-0 hidden h-px bg-white/10 md:block" />
-            {m.process.steps.map((title, i) => (
-              <div className="relative z-10" key={i}>
-                <div className="text-label-caps mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-on-tertiary-container bg-surface-container text-lg text-on-tertiary-container">
-                  {i + 1}
-                </div>
-                <h3 className="text-body-lg text-center text-xl font-medium text-white">
-                  {title}
-                </h3>
-              </div>
-            ))}
-          </div>
-          <div className="mt-16 text-center">
-            <div className="inline-block">
-              <PrimaryButton href="/contact">{m.cta.process}</PrimaryButton>
-            </div>
-          </div>
-        </section>
-
-        <section
-          className="mx-auto mb-section-gap max-w-8xl px-8 md:px-16"
-          id="why-me"
-        >
-          <div className="grid grid-cols-12 gap-gutter">
-            <div className="mb-12 col-span-12 lg:col-span-4 lg:mb-0">
-              <h2 className="mb-6 text-headline-lg text-white">{m.why.title}</h2>
-            </div>
-            <div className="col-span-12 lg:col-span-7 lg:col-start-6">
-              <ul className="flex flex-col gap-6 text-body-lg text-on-surface-variant">
-                {m.why.items.map((item, i) => (
-                  <li className="flex items-start gap-4" key={i}>
-                    <svg
-                      className="mt-0.5 h-5 w-5 shrink-0 text-on-tertiary-container"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      aria-hidden
+                    <time
+                      className="text-label-caps text-[10px] text-on-surface-variant"
+                      dateTime={post.date}
                     >
-                      <path
-                        d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+                      {formatPostDate(post.date, locale)}
+                    </time>
+                    <h3 className="mt-3 text-xl font-medium text-on-background group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-body-md mt-3 text-on-surface-variant/80">
+                      {post.description}
+                    </p>
+                    <span className="text-label-caps mt-6 inline-block text-[10px] text-on-tertiary-container">
+                      {m.blog.readMore}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section
-          className="mx-auto mb-section-gap max-w-8xl border-t border-white/5 px-8 pb-8 pt-32 md:px-16"
+          className="mx-auto mb-section-gap max-w-8xl border-t border-subtle px-8 pb-8 pt-32 md:px-16"
           id="contact"
         >
           <div className="flex flex-col items-center text-center">
-            <h2 className="text-headline-lg mb-8 max-w-3xl text-white">
-              {m.contact.title}
-            </h2>
+            <h2 className="text-headline-lg mb-8 max-w-3xl text-on-background">{m.contact.title}</h2>
             <p className="text-body-lg mb-12 max-w-2xl text-on-surface-variant">
               {m.contact.body}
             </p>
             <div className="flex flex-wrap justify-center gap-6">
               <PrimaryButton href="/contact">{m.cta.contact}</PrimaryButton>
             </div>
-            <p className="mt-8 text-body-md text-on-surface-variant">
-              {m.contact.whatsappPrefix}{" "}
-              <a
-                className="text-on-tertiary-container transition-colors duration-300 hover:text-white"
-                href="/chat"
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {m.contact.whatsappLink}
-              </a>
-            </p>
           </div>
         </section>
       </main>
-
-      <footer className="mt-32 w-full border-t border-white/5 bg-[#0A0A0B]">
-        <div className="mx-auto flex max-w-8xl flex-col items-end justify-between gap-8 px-8 py-24 md:flex-row md:px-16">
-          <div className="flex flex-col gap-4">
-            <div className="text-4xl font-black tracking-tighter text-white/10">
-              GP.
-            </div>
-            <div className="text-[9px] font-sans uppercase tracking-widest text-white/30">
-              {m.footer.line}
-            </div>
-          </div>
-          <div className="flex gap-8">
-            <a
-              className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
-              href="https://www.linkedin.com/in/gpadillam"
-              rel="me noopener noreferrer"
-              target="_blank"
-            >
-              LinkedIn
-            </a>
-            <a
-              className="text-[9px] font-sans uppercase tracking-widest text-white/30 opacity-100 transition-colors duration-300 hover:text-blue-500 hover:opacity-80"
-              href="https://github.com/GuillemPM"
-              rel="me noopener noreferrer"
-              target="_blank"
-            >
-              GitHub
-            </a>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter m={m} />
     </>
   );
 }

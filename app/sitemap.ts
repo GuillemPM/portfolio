@@ -1,44 +1,67 @@
 import { MetadataRoute } from "next";
-
-const BASE_URL = "https://www.guillem.pm";
-
-const HREFLANG_URLS = {
-  es: "https://www.guillem.pm",
-  en: "https://www.guillem.pm/en",
-  ca: "https://www.guillem.pm/ca",
-};
+import {
+  getAllPostMetas,
+  getPostTranslations,
+  postLanguageAlternates,
+} from "@/lib/blog/posts";
+import {
+  SITE_URL,
+  languageAlternates,
+  localizedUrl,
+} from "@/lib/i18n/siteMetadata";
+import { locales } from "@/lib/i18n/types";
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const seenPostIds = new Set<string>();
+  const blogPosts: MetadataRoute.Sitemap = [];
+
+  for (const locale of locales) {
+    for (const post of getAllPostMetas(locale)) {
+      if (seenPostIds.has(post.id)) continue;
+      seenPostIds.add(post.id);
+
+      for (const translation of getPostTranslations(post.id)) {
+        blogPosts.push({
+          url: localizedUrl(translation.locale, `/blog/${translation.slug}`),
+          lastModified: new Date(translation.date || Date.now()),
+          changeFrequency: "monthly",
+          priority: 0.7,
+          alternates: {
+            languages: postLanguageAlternates(post.id),
+          },
+        });
+      }
+    }
+  }
+
   return [
     {
-      url: BASE_URL,
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 1,
-      images: ["https://www.guillem.pm/logo.webp"],
       alternates: {
-        languages: {
-          es: HREFLANG_URLS.es,
-          en: HREFLANG_URLS.en,
-          ca: HREFLANG_URLS.ca,
-          "x-default": HREFLANG_URLS.es,
-        },
+        languages: languageAlternates(),
       },
     },
     {
-      url: `${BASE_URL}/contact`,
+      url: localizedUrl("es", "/contact"),
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
-      images: ["https://www.guillem.pm/logo.webp"],
       alternates: {
-        languages: {
-          es: `${HREFLANG_URLS.es}/contact`,
-          en: `${HREFLANG_URLS.en}/contact`,
-          ca: `${HREFLANG_URLS.ca}/contact`,
-          "x-default": `${HREFLANG_URLS.es}/contact`,
-        },
+        languages: languageAlternates("/contact"),
       },
     },
+    {
+      url: localizedUrl("es", "/blog"),
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+      alternates: {
+        languages: languageAlternates("/blog"),
+      },
+    },
+    ...blogPosts,
   ];
 }

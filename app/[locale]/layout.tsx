@@ -1,8 +1,20 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
-import Script from "next/script";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/next";
+import { SmoothScroll } from "@/components/portfolio/SmoothScroll";
 import { locales } from "@/lib/i18n/types";
+import {
+  SITE_NAME,
+  SITE_URL,
+  htmlLang,
+  languageAlternates,
+  localizedUrl,
+  openGraphLocale,
+  resolveSiteLocale,
+  siteDescription,
+  siteKeywords,
+  siteTitle,
+} from "@/lib/i18n/siteMetadata";
 import "./globals.css";
 
 const inter = Inter({
@@ -22,66 +34,55 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-const SEO_DESCRIPTIONS = {
-  es: "Arquitecto de software: herramientas internas, integraciones de IA, plataformas y transformación digital.",
-  en: "Software architect: internal tools, AI integrations, platforms, and digital transformation for ambitious companies.",
-  ca: "Arquitecte de programari: eines internes, integracions d'IA, plataformes i transformació digital per a empreses ambicioses.",
-} as const;
-
-const HREFLANG_URLS = {
-  es: "https://www.guillem.pm",
-  en: "https://www.guillem.pm/en",
-  ca: "https://www.guillem.pm/ca",
-};
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
-  const description = SEO_DESCRIPTIONS[locale as keyof typeof SEO_DESCRIPTIONS] ?? SEO_DESCRIPTIONS.es;
-  const canonicalUrl = locale === "es" 
-    ? "https://www.guillem.pm" 
-    : `https://www.guillem.pm/${locale}`;
+  const { locale: raw } = await params;
+  const locale = resolveSiteLocale(raw);
+  const description = siteDescription[locale];
+  const title = siteTitle[locale];
+  const canonicalUrl = localizedUrl(locale);
 
   return {
-    title: "Guillem Padilla - Software Architect",
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: title,
+      template: `%s | ${SITE_NAME}`,
+    },
     description,
+    keywords: siteKeywords[locale],
+    authors: [{ name: SITE_NAME, url: SITE_URL }],
+    creator: SITE_NAME,
+    publisher: SITE_NAME,
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
     alternates: {
       canonical: canonicalUrl,
-      languages: {
-        es: HREFLANG_URLS.es,
-        en: HREFLANG_URLS.en,
-        ca: HREFLANG_URLS.ca,
-        "x-default": HREFLANG_URLS.es,
-      },
+      languages: languageAlternates(),
     },
     openGraph: {
-      title: "Guillem Padilla - Software Architect",
-      description: description,
+      title,
+      description,
       url: canonicalUrl,
-      siteName: "Guillem Padilla",
-      locale: locale === "ca" ? "ca_ES" : locale === "en" ? "en_US" : "es_ES",
+      siteName: SITE_NAME,
+      locale: openGraphLocale(locale),
       type: "website",
-      images: [
-        {
-          url: "https://www.guillem.pm/logo.webp",
-          width: 1200,
-          height: 630,
-          alt: "Guillem Padilla - Software Architect",
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Guillem Padilla - Software Architect",
-      description: description,
-      images: ["https://www.guillem.pm/logo.webp"],
+      title,
+      description,
     },
   };
 }
@@ -93,43 +94,59 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  const htmlLang = locale === "ca" ? "ca" : locale === "es" ? "es" : "en";
-  const description = SEO_DESCRIPTIONS[locale as keyof typeof SEO_DESCRIPTIONS] ?? SEO_DESCRIPTIONS.es;
+  const { locale: raw } = await params;
+  const locale = resolveSiteLocale(raw);
+  const description = siteDescription[locale];
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: SITE_NAME,
+        description,
+        inLanguage: ["es", "en", "ca"],
+        publisher: { "@id": `${SITE_URL}/#person` },
+      },
+      {
+        "@type": "Person",
+        "@id": `${SITE_URL}/#person`,
+        name: SITE_NAME,
+        url: SITE_URL,
+        jobTitle: "Software Architect",
+        description,
+        knowsAbout: [
+          "Software architecture",
+          "Microsoft Business Central",
+          "Applied AI",
+          "Microsoft Azure",
+        ],
+        sameAs: [
+          "https://www.linkedin.com/in/gpadillam",
+          "https://github.com/GuillemPM",
+        ],
+      },
+    ],
+  };
 
   return (
     <html
-      className={`dark ${inter.variable} ${spaceGrotesk.variable} h-full`}
-      lang={htmlLang}
+      className={`${inter.variable} ${spaceGrotesk.variable} h-full`}
+      lang={htmlLang(locale)}
       suppressHydrationWarning
     >
       <head>
-        <meta name="theme-color" content="#0a0a0b" />
+        <meta name="theme-color" content="#ffffff" />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Person",
-              name: "Guillem Padilla",
-              url: "https://www.guillem.pm",
-              jobTitle: "Software Architect",
-              description: description,
-              sameAs: [
-                "https://www.linkedin.com/in/gpadillam",
-                "https://github.com/GuillemPM",
-              ],
-            }),
-          }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        {children}
+        <SmoothScroll>{children}</SmoothScroll>
         <Analytics />
-        <Script
-          src="https://unpkg.com/@elevenlabs/convai-widget-embed"
-          strategy="lazyOnload"
-        />
       </body>
     </html>
   );

@@ -6,7 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/chat", "/schedule"],
       },
     ],
     sitemap: "https://www.guillem.pm/sitemap.xml",

@@ -1,90 +1,263 @@
 "use client"
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react"
+import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import type { ComponentPropsWithoutRef } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { EffectComposer } from "@react-three/postprocessing"
 import { Environment, OrbitControls, useGLTF } from "@react-three/drei"
 import {
+  CanvasTexture,
+  ClampToEdgeWrapping,
   Color,
+  FrontSide,
   Group,
+  LinearFilter,
   Material,
   Mesh,
-  MeshStandardMaterial,
   PerspectiveCamera,
+  ShaderMaterial,
   Vector2,
+  Vector3,
 } from "three"
-import { AsciiEffect, DEFAULT_ASCII_PAGE_BACKGROUND } from "./ascii-effect"
+import { DEFAULT_ASCII_PAGE_BACKGROUND } from "./ascii-effect"
+import type { OrbitSatelliteConfig } from "./hero-orbit-satellites"
+import { HeroOrbitSatellites } from "./hero-orbit-satellites"
 
 const PRIMARY_EFFECT_COLOR = "#486cff"
 
 export const DEFAULT_EFFECT_SCENE_GLB = "/models/wWubYahT.glb" as const
 
-type UserModelProps = ComponentPropsWithoutRef<"group"> & { modelSrc: string }
+// --- ASCII mesh material ---
 
-function UserModel({ modelSrc, ...props }: UserModelProps) {
+const ASCII_CHARS = " .:-=+*#%@"
+
+function createAsciiGlyphAtlas(chars: string, cellSize = 64): CanvasTexture {
+  const count = chars.length
+  const canvas = document.createElement("canvas")
+  canvas.width = cellSize * count
+  canvas.height = cellSize
+  const ctx = canvas.getContext("2d")!
+  ctx.fillStyle = "#000"
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = "#fff"
+  ctx.font = `bold ${Math.floor(cellSize * 0.85)}px monospace`
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  for (let i = 0; i < count; i++) {
+    ctx.fillText(chars[i], i * cellSize + cellSize / 2, cellSize / 2)
+  }
+  const tex = new CanvasTexture(canvas)
+  tex.minFilter = LinearFilter
+  tex.magFilter = LinearFilter
+  tex.wrapS = ClampToEdgeWrapping
+  tex.wrapT = ClampToEdgeWrapping
+  tex.needsUpdate = true
+  return tex
+}
+
+const asciiMeshVertexShader = /* glsl */ `
+varying vec3 vNormal;
+varying vec3 vWorldPos;
+varying vec2 vScreenUV;
+varying vec3 vVertexColor;
+
+#ifdef USE_COLOR
+  // Three.js injects 'attribute vec3 color' when vertexColors is true
+#endif
+
+void main() {
+  vNormal = normalize(normalMatrix * normal);
+  #ifdef USE_COLOR
+    vVertexColor = color.rgb;
+  #else
+    vVertexColor = vec3(0.0);
+  #endif
+  vec4 worldPos = modelMatrix * vec4(position, 1.0);
+  vWorldPos = worldPos.xyz;
+  vec4 clipPos = projectionMatrix * viewMatrix * worldPos;
+  gl_Position = clipPos;
+  vScreenUV = clipPos.xy / clipPos.w * 0.5 + 0.5;
+}
+`
+
+const asciiMeshFragmentShader = /* glsl */ `
+uniform vec3 baseColor;
+uniform vec3 lightDir;
+uniform float cellSize;
+uniform vec2 resolution;
+uniform sampler2D glyphAtlas;
+uniform float glyphCount;
+
+varying vec3 vNormal;
+varying vec3 vWorldPos;
+varying vec2 vScreenUV;
+varying vec3 vVertexColor;
+
+void main() {
+  // Detect eyeballs by vertex color brightness (eyeballs are white/very bright)
+  float vertBrightness = dot(vVertexColor, vec3(0.299, 0.587, 0.114));
+  if (vertBrightness > 0.85) discard;
+
+  // Simple diffuse lighting
+  float diffuse = max(dot(normalize(vNormal), normalize(lightDir)), 0.0);
+  float ambient = 0.12;
+  float lighting = ambient + diffuse * 0.88;
+
+  // ASCII grid in screen space
+  vec2 cellCount = resolution / cellSize;
+  vec2 cell = floor(vScreenUV * cellCount);
+  vec2 cellFrac = fract(vScreenUV * cellCount);
+
+  // Pick glyph based on brightness
+  float idx = floor(lighting * (glyphCount - 1.0) + 0.5);
+  idx = clamp(idx, 0.0, glyphCount - 1.0);
+
+  // Sample glyph atlas
+  vec2 glyphUV = vec2((idx + cellFrac.x) / glyphCount, 1.0 - cellFrac.y);
+  float glyphAlpha = texture2D(glyphAtlas, glyphUV).r;
+
+  // Color the glyph with tinted base color
+  vec3 color = baseColor * (0.6 + lighting * 0.4);
+  
+  // Discard background pixels for transparent look
+  if (glyphAlpha < 0.1) discard;
+
+  gl_FragColor = vec4(color * glyphAlpha, 1.0);
+}
+`
+
+// Depth-only pre-pass material: writes solid depth so back faces are fully occluded
+function createDepthPrePassMaterial(): ShaderMaterial {
+  return new ShaderMaterial({
+    vertexShader: /* glsl */ `
+      void main() {
+        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      void main() {
+        gl_FragColor = vec4(0.0);
+      }
+    `,
+    colorWrite: false,
+    side: FrontSide,
+  })
+}
+
+function createAsciiMeshMaterial(resolution: Vector2): ShaderMaterial {
+  const atlas = createAsciiGlyphAtlas(ASCII_CHARS)
+  const color = new Color(PRIMARY_EFFECT_COLOR)
+  return new ShaderMaterial({
+    vertexShader: asciiMeshVertexShader,
+    fragmentShader: asciiMeshFragmentShader,
+    uniforms: {
+      baseColor: { value: new Vector3(color.r, color.g, color.b) },
+      lightDir: { value: new Vector3(2, 3.5, 6).normalize() },
+      cellSize: { value: 8.0 },
+      resolution: { value: resolution },
+      glyphAtlas: { value: atlas },
+      glyphCount: { value: ASCII_CHARS.length },
+    },
+    vertexColors: true,
+    side: FrontSide,
+    depthWrite: false,  // depth already written by pre-pass
+  })
+}
+
+// --- End ASCII mesh material ---
+
+type UserModelProps = ComponentPropsWithoutRef<"group"> & {
+  modelSrc: string
+  resolution: Vector2
+}
+
+function UserModel({ modelSrc, resolution, ...props }: UserModelProps) {
   const { scene } = useGLTF(modelSrc)
 
-  const basicMat = useMemo(
-    () =>
-      new MeshStandardMaterial({
-        color: PRIMARY_EFFECT_COLOR,
-        roughness: 0.12, // Lower = sharper highlights, more contrast
-        metalness: 0,
-        flatShading: false,
-      }),
-    []
-  )
+  const { depthMat, asciiMat } = useMemo(() => ({
+    depthMat: createDepthPrePassMaterial(),
+    asciiMat: createAsciiMeshMaterial(resolution),
+  }), [resolution])
 
   useEffect(() => {
+    const depthClones: Mesh[] = []
+
     const disposeMaterial = (material: Material | Material[]) => {
       if (Array.isArray(material)) {
         material.forEach((item) => {
-          if (item !== basicMat) item.dispose()
+          if (item !== asciiMat && item !== depthMat) item.dispose()
         })
         return
       }
 
-      if (material !== basicMat) material.dispose()
+      if (material !== asciiMat && material !== depthMat) material.dispose()
     }
 
     scene.traverse((obj) => {
       if (obj instanceof Mesh) {
         const originalMat = obj.material
-        // Dispose original material if it exists and is different
         if (originalMat) {
           try {
             disposeMaterial(originalMat)
           } catch {
-            // Ignore disposal errors (context might be lost)
+            // Ignore disposal errors
           }
         }
-        obj.material = basicMat
+        // ASCII material on the original mesh
+        obj.material = asciiMat
+        obj.renderOrder = 1
+
+        // Depth pre-pass clone: renders first, writes solid depth
+        const depthClone = new Mesh(obj.geometry, depthMat)
+        depthClone.renderOrder = 0
+        depthClone.frustumCulled = obj.frustumCulled
+        depthClone.position.copy(obj.position)
+        depthClone.rotation.copy(obj.rotation)
+        depthClone.scale.copy(obj.scale)
+        depthClone.matrix.copy(obj.matrix)
+        depthClone.matrixAutoUpdate = obj.matrixAutoUpdate
+        obj.parent?.add(depthClone)
+        depthClones.push(depthClone)
       }
     })
 
     return () => {
-      // Cleanup: dispose material when component unmounts
-      // Wrap in try-catch to handle context loss gracefully
+      for (const clone of depthClones) {
+        clone.parent?.remove(clone)
+      }
       try {
-        if (basicMat && typeof basicMat.dispose === "function") {
-          basicMat.dispose()
-        }
+        asciiMat.dispose()
+        depthMat.dispose()
       } catch {
-        // Ignore disposal errors (context might be lost or already disposed)
+        // Ignore disposal errors
       }
     }
-  }, [scene, basicMat])
+  }, [scene, asciiMat, depthMat])
 
   return <primitive object={scene} {...props} />
 }
 
-const AUTO_ROTATE_SPEED = 0.4
-const HOVER_SPIN_MULTIPLIER = 2
-const TILT_FORWARD = 0.3
+/** Peak yaw (rad) each side of center — slow look left / look right */
+const AUTO_SWAY_AMPLITUDE = 0.38
+/** Seconds for one full left → right → left cycle */
+const AUTO_SWAY_CYCLE_SEC = 18
+const TILT_FORWARD = -0.18
 const TILT_LEFT = -0.08
 
-/** Wobble when autoRotate is off (e.g. card embeds): slow sin waves, not continuous spin. */
+/** Manual drag pitch (rotation.x), radians — relative to default pose */
+const DRAG_PITCH_MIN = -0.45
+const DRAG_PITCH_MAX = 0.32
+const DRAG_POINTER_SENS = 0.005
+/** How quickly rotation catches the pointer while dragging (higher = snappier) */
+const DRAG_FOLLOW = 14
+/** Inertia decay after release (higher = stops sooner) */
+const DRAG_INERTIA_DAMP = 4.5
+const DRAG_INERTIA_CUTOFF = 0.02
+
+function clampDragPitch(x: number): number {
+  return Math.max(DRAG_PITCH_MIN, Math.min(DRAG_PITCH_MAX, x))
+}
+
 const FLOAT_AMP_X = 0.1
 const FLOAT_AMP_Y = 0.3
 const FLOAT_AMP_Z = 0.1
@@ -97,10 +270,6 @@ const FLOAT_DRAG_DAMP = 0.25
 const CAMERA_BASE_Z = 4.5
 const CAMERA_ZOOM_FACTOR = 1.1
 
-/**
- * In-card embeds are tiny; default layout y is tuned for the hero, so embeds use this unless overridden.
- * Set `modelPosition` on `EffectScene` to nudge a specific model.
- */
 export const DEFAULT_EMBED_MODEL_POSITION: [number, number, number] = [0, -0.12, 0]
 
 function getSceneLayout(width: number): {
@@ -143,38 +312,36 @@ function DraggableUserModel({
   modelRotation: modelRotationOverride,
   autoRotate = true,
   float: floatEnabled = true,
+  enableDrag = true,
+  children,
+  resolution,
 }: {
   isHovered?: boolean
   modelSrc: string
-  /** If set, overrides getSceneLayout().modelScale (e.g. card embeds). */
   modelScale?: number
-  /** If set, overrides getSceneLayout().modelPosition. */
   modelPosition?: [number, number, number]
-  /**
-   * Base Euler (radians, XYZ order) applied after drag, before the scene tilt. Use to
-   * face each GLB the way you want; drag + idle motion still add on top.
-   */
   modelRotation?: [number, number, number]
-  /**
-   * When false, no continuous spin; a slight sinusoidal “float” wobble is used instead
-   * (e.g. solution card embeds).
-   */
   autoRotate?: boolean
-  /**
-   * When `autoRotate` is false, controls the idle wobble. Set false for a static rest
-   * pose (still draggable).
-   */
   float?: boolean
+  enableDrag?: boolean
+  children?: React.ReactNode
+  resolution: Vector2
 }) {
   const groupRef = useRef<Group>(null)
   const { size, gl } = useThree()
-  const [rotation, setRotation] = useState({ x: 0, y: 0 })
+  const rotationRef = useRef({ x: 0, y: 0 })
+  const dragTargetRef = useRef({ x: 0, y: 0 })
+  const velocityRef = useRef({ x: 0, y: 0 })
   const isDragging = useRef(false)
   const lastPointer = useRef({ x: 0, y: 0 })
-  const autoY = useRef(0)
+  const swayT = useRef(0)
   const floatT = useRef(0)
 
-  const spinSpeed = isHovered ? AUTO_ROTATE_SPEED * HOVER_SPIN_MULTIPLIER : AUTO_ROTATE_SPEED
+  const swayOmega = (Math.PI * 2) / AUTO_SWAY_CYCLE_SEC
+
+  const getSwayY = () =>
+    Math.sin(swayT.current * swayOmega) * AUTO_SWAY_AMPLITUDE
+
   const sceneLayout = getSceneLayout(size.width)
   const modelScale = modelScaleOverride ?? sceneLayout.modelScale
   const modelPosition = modelPositionOverride ?? sceneLayout.modelPosition
@@ -189,11 +356,33 @@ function DraggableUserModel({
     let addY = 0
     let addZ = 0
 
-    if (autoRotate) {
-      if (!isDragging.current) {
-        autoY.current += delta * spinSpeed
-      }
-      addY = autoY.current
+    const coasting =
+      Math.abs(velocityRef.current.x) > DRAG_INERTIA_CUTOFF ||
+      Math.abs(velocityRef.current.y) > DRAG_INERTIA_CUTOFF
+
+    if (isDragging.current) {
+      const follow = 1 - Math.exp(-DRAG_FOLLOW * delta)
+      const rx = rotationRef.current.x
+      const ry = rotationRef.current.y
+      const tx = dragTargetRef.current.x
+      const ty = dragTargetRef.current.y
+      const nx = rx + (tx - rx) * follow
+      const ny = ry + (ty - ry) * follow
+      velocityRef.current.x = (nx - rx) / Math.max(delta, 1e-4)
+      velocityRef.current.y = (ny - ry) / Math.max(delta, 1e-4)
+      rotationRef.current.x = clampDragPitch(nx)
+      rotationRef.current.y = ny
+    } else if (coasting) {
+      rotationRef.current.y += velocityRef.current.y * delta
+      rotationRef.current.x = clampDragPitch(
+        rotationRef.current.x + velocityRef.current.x * delta,
+      )
+      const damp = Math.exp(-DRAG_INERTIA_DAMP * delta)
+      velocityRef.current.x *= damp
+      velocityRef.current.y *= damp
+    } else if (autoRotate) {
+      swayT.current += delta
+      addY = getSwayY()
     } else if (floatEnabled) {
       floatT.current += delta
       const t = floatT.current
@@ -204,17 +393,30 @@ function DraggableUserModel({
       addZ = Math.sin(t * FLOAT_FREQ_Z + 2.05) * FLOAT_AMP_Z * hover * d
     }
 
-    groupRef.current.rotation.x = rotation.x + baseRx + TILT_FORWARD + addX
-    groupRef.current.rotation.y = rotation.y + baseRy + addY
+    const pitch = clampDragPitch(rotationRef.current.x)
+    rotationRef.current.x = pitch
+    groupRef.current.rotation.x = pitch + baseRx + TILT_FORWARD + addX
+    groupRef.current.rotation.y = rotationRef.current.y + baseRy + addY
     groupRef.current.rotation.z = baseRz + TILT_LEFT + addZ
   })
 
   useEffect(() => {
+    if (!enableDrag) return
+
     const canvas = gl.domElement
 
     const onPointerDown = (e: Event) => {
       const pe = e as PointerEvent
       if (pe.target === canvas) {
+        if (autoRotate) {
+          const swayY = getSwayY()
+          rotationRef.current.y += swayY
+          swayT.current = 0
+        }
+        dragTargetRef.current.x = rotationRef.current.x
+        dragTargetRef.current.y = rotationRef.current.y
+        velocityRef.current.x = 0
+        velocityRef.current.y = 0
         isDragging.current = true
         lastPointer.current = { x: pe.clientX, y: pe.clientY }
       }
@@ -223,10 +425,13 @@ function DraggableUserModel({
     const onPointerMove = (e: Event) => {
       if (!isDragging.current) return
       const pe = e as PointerEvent
-      const dx = (pe.clientX - lastPointer.current.x) * 0.005
-      const dy = (pe.clientY - lastPointer.current.y) * 0.005
+      const dx = (pe.clientX - lastPointer.current.x) * DRAG_POINTER_SENS
+      const dy = (pe.clientY - lastPointer.current.y) * DRAG_POINTER_SENS
       lastPointer.current = { x: pe.clientX, y: pe.clientY }
-      setRotation((r) => ({ x: r.x - dy, y: r.y + dx }))
+      dragTargetRef.current.y += dx
+      dragTargetRef.current.x = clampDragPitch(
+        dragTargetRef.current.x + dy,
+      )
     }
 
     const onPointerUp = () => {
@@ -241,11 +446,14 @@ function DraggableUserModel({
       window.removeEventListener("pointermove", onPointerMove as EventListener)
       window.removeEventListener("pointerup", onPointerUp)
     }
-  }, [gl])
+  }, [enableDrag, gl])
 
   return (
-    <group ref={groupRef} position={modelPosition}>
-      <UserModel key={modelSrc} modelSrc={modelSrc} scale={modelScale} />
+    <group position={modelPosition}>
+      <group ref={groupRef}>
+        <UserModel key={modelSrc} modelSrc={modelSrc} resolution={resolution} scale={modelScale} />
+        {children}
+      </group>
     </group>
   )
 }
@@ -260,7 +468,7 @@ function CameraHoverZoom({ isHovered = false }: { isHovered?: boolean }) {
       camera.updateProjectionMatrix()
     }
 
-    const targetZ = isHovered ? sceneLayout.cameraZ / CAMERA_ZOOM_FACTOR : sceneLayout.cameraZ
+    const targetZ = sceneLayout.cameraZ
     camera.position.z += (targetZ - camera.position.z) * 0.08
     camera.position.x += (0 - camera.position.x) * 0.08
     camera.position.y += (0 - camera.position.y) * 0.08
@@ -268,28 +476,18 @@ function CameraHoverZoom({ isHovered = false }: { isHovered?: boolean }) {
   return null
 }
 
-/** Mounts EffectComposer only after the first frame so WebGL context exists (avoids postprocessing addPass reading null .alpha) */
 export const DEFAULT_ASCII_CELL_SIZE = 9
 
-/** Shipped `AsciiEffect` `postfx` for full-width / hero; higher contrast, dramatic. */
 export const DEFAULT_HERO_ASCII_POSTFX: Record<string, number> = {
   contrastAdjust: 1.8,
   brightnessAdjust: 0,
 }
 
-/**
- * Shipped for solution-card embeds. Override with `postfx` on `EffectScene` or per card.
- */
 export const DEFAULT_SOLUTION_ASCII_POSTFX: Record<string, number> = {
   contrastAdjust: 0.7,
   brightnessAdjust: 0.02,
 }
 
-/**
- * In-card view: camera sits at +Z looking at the origin; these lights sit in front of the
- * subject (high +Z) so the model reads from the same side as the user. Hero uses raking
- * three-quarter lights for drama.
- */
 function SolutionCardLights() {
   return (
     <>
@@ -310,6 +508,7 @@ function HeroAreaLights() {
   )
 }
 
+
 function SceneWithDelayedComposer({
   resolution,
   mousePos,
@@ -319,12 +518,15 @@ function SceneWithDelayedComposer({
   modelScale,
   asciiCellSize = DEFAULT_ASCII_CELL_SIZE,
   transparentBackground = false,
+  pageBackgroundColor,
   autoRotate = true,
   modelPosition,
   modelRotation,
   float: floatEnabled = true,
   embed = false,
   postfx = {},
+  orbitSatellites,
+  enableDrag = true,
 }: {
   resolution: Vector2
   mousePos: Vector2
@@ -334,17 +536,27 @@ function SceneWithDelayedComposer({
   modelScale?: number
   asciiCellSize?: number
   transparentBackground?: boolean
+  pageBackgroundColor?: string
   autoRotate?: boolean
   modelPosition?: [number, number, number]
   modelRotation?: [number, number, number]
   float?: boolean
   embed?: boolean
   postfx?: Record<string, number | boolean>
+  orbitSatellites?: OrbitSatelliteConfig[]
+  enableDrag?: boolean
 }) {
-  const { gl } = useThree()
+  const { gl, size } = useThree()
   const [composerReady, setComposerReady] = useState(false)
   const frameCount = useRef(0)
   const scheduleComposerRef = useRef(false)
+  const resolvedModelPosition =
+    modelPosition ?? getSceneLayout(size.width).modelPosition
+
+  const hasSatellites = !!(orbitSatellites && orbitSatellites.length > 0 && !embed)
+  const sceneBackground =
+    pageBackgroundColor ??
+    (transparentBackground ? undefined : DEFAULT_ASCII_PAGE_BACKGROUND)
 
   useFrame(() => {
     if (composerReady) return
@@ -365,7 +577,7 @@ function SceneWithDelayedComposer({
 
   return (
     <>
-      {!transparentBackground && <color attach="background" args={[DEFAULT_ASCII_PAGE_BACKGROUND]} />}
+      {sceneBackground ? <color attach="background" args={[sceneBackground]} /> : null}
       <Environment preset="studio" background={false} />
       {embed ? <SolutionCardLights /> : <HeroAreaLights />}
       <CameraHoverZoom isHovered={isHovered} />
@@ -378,11 +590,28 @@ function SceneWithDelayedComposer({
           modelRotation={modelRotation}
           autoRotate={autoRotate}
           float={floatEnabled}
-        />
+          enableDrag={enableDrag}
+          resolution={resolution}
+        >
+          {hasSatellites && (
+            <group position={[0, 0, 0]}>
+              <HeroOrbitSatellites items={orbitSatellites!} />
+            </group>
+          )}
+        </DraggableUserModel>
       </Suspense>
-      <OrbitControls enableRotate={true} enableZoom={enableZoom} enablePan={true} />
-      {composerReady && (
-        <EffectComposer multisampling={transparentBackground ? 0 : undefined}>
+      {enableDrag || enableZoom ? (
+        <OrbitControls
+          enableRotate={enableDrag && !autoRotate}
+          enableZoom={enableZoom}
+          enablePan={enableDrag && !autoRotate}
+        />
+      ) : null}
+      {/* EffectComposer disabled for debugging */}
+      {/* {composerReady && (
+        <EffectComposer
+          multisampling={transparentBackground ? 0 : undefined}
+        >
           <AsciiEffect
             style="standard"
             cellSize={asciiCellSize}
@@ -394,57 +623,60 @@ function SceneWithDelayedComposer({
             resolution={resolution}
             mousePos={mousePos}
             postfx={postfx}
+            pageBackgroundColor={pageBackgroundColor}
           />
         </EffectComposer>
-      )}
+      )} */}
     </>
   )
 }
 
 interface EffectSceneProps {
   className?: string
-  /** Allow zoom with scroll wheel (default true). Set false on hero to block zoom. */
   enableZoom?: boolean
-  /** Public URL path to a `.glb` in `/public` (e.g. `/models/hero.glb`). */
   modelSrc?: string
-  /**
-   * When set, the wrapper is sized by the parent only (no min-height: 300px).
-   * Use for small in-card or inline embeds. Disables model auto-rotation by default.
-   */
   embed?: boolean
-  /** When false, the model only rotates via drag. Defaults to !embed. */
   autoRotate?: boolean
-  /**
-   * When `autoRotate` is off, `true` (default) applies the idle float wobble; set `false`
-   * to keep the model static until the user drags.
-   */
   float?: boolean
-  /**
-   * GLB world scale. When omitted, scale follows the responsive layout from canvas width. Set for embeds so the same model can read larger/smaller in a small view.
-   */
   modelScale?: number
-  /**
-   * World-space position of the model root. When omitted, uses responsive `getSceneLayout`,
-   * or for `embed` the default `DEFAULT_EMBED_MODEL_POSITION` unless you override.
-   */
   modelPosition?: [number, number, number]
-  /**
-   * Base orientation in radians (Euler XYZ: pitch, yaw, roll). Added before the scene’s
-   * built-in tilt; use per GLB to set the “rest” pose. Drag and idle motion stack on top.
-   */
   modelRotation?: [number, number, number]
-  /**
-   * ASCII post-process cell size in pixels of the post buffer (smaller = denser). Default matches full-width hero; use e.g. 2 in small embeds.
-   */
   asciiCellSize?: number
-  /**
-   * When true, the canvas clears to transparent and no solid scene background, so the parent can show through (e.g. card tile).
-   */
   transparentBackground?: boolean
-  /**
-   * Merges with `DEFAULT_HERO_ASCII_POSTFX` or `DEFAULT_SOLUTION_ASCII_POSTFX` (when `embed`) for `AsciiEffect`.
-   */
+  pageBackgroundColor?: string
   postfx?: Record<string, number | boolean>
+  orbitSatellites?: OrbitSatelliteConfig[]
+  enableDrag?: boolean
+}
+
+function useEnableSceneDrag(): boolean {
+  const subscribe = (onStoreChange: () => void): (() => void) => {
+    const media = window.matchMedia("(hover: hover) and (pointer: fine)")
+    media.addEventListener("change", onStoreChange)
+    return () => media.removeEventListener("change", onStoreChange)
+  }
+  const getSnapshot = (): boolean =>
+    window.matchMedia("(hover: hover) and (pointer: fine)").matches
+  const getServerSnapshot = (): boolean => false
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+}
+
+function CanvasInteractionGate({ enableDrag }: { enableDrag: boolean }): null {
+  const { gl } = useThree()
+
+  useEffect(() => {
+    const canvas = gl.domElement
+    if (enableDrag) {
+      canvas.style.pointerEvents = ""
+      canvas.style.touchAction = ""
+    } else {
+      canvas.style.pointerEvents = "none"
+      canvas.style.touchAction = "pan-y"
+    }
+  }, [enableDrag, gl])
+
+  return null
 }
 
 export function EffectScene({
@@ -455,15 +687,21 @@ export function EffectScene({
   modelScale,
   asciiCellSize = DEFAULT_ASCII_CELL_SIZE,
   transparentBackground = false,
+  pageBackgroundColor,
   autoRotate: autoRotateProp,
   modelPosition: modelPositionProp,
   modelRotation,
   float: floatProp,
   postfx: postfxProp,
+  orbitSatellites: orbitSatellitesProp,
+  enableDrag: enableDragProp,
 }: EffectSceneProps) {
+  const finePointerDesktop = useEnableSceneDrag()
   const autoRotate = autoRotateProp ?? !embed
+  const enableDrag = enableDragProp ?? (finePointerDesktop && !embed)
   const modelPosition = modelPositionProp ?? (embed ? DEFAULT_EMBED_MODEL_POSITION : undefined)
   const float = floatProp !== false
+  const orbitSatellites = embed ? undefined : orbitSatellitesProp
   const asciiPostfx = {
     ...(embed ? DEFAULT_SOLUTION_ASCII_POSTFX : DEFAULT_HERO_ASCII_POSTFX),
     ...postfxProp,
@@ -517,6 +755,8 @@ export function EffectScene({
         width: "100%",
         height: className ? "100%" : "100vh",
         minHeight: className && !embed ? 300 : undefined,
+        touchAction: enableDrag ? undefined : "pan-y",
+        pointerEvents: enableDrag ? undefined : "none",
       }}
     >
       <Canvas
@@ -528,11 +768,17 @@ export function EffectScene({
         }
         camera={{ position: [0, 0, CAMERA_BASE_Z], fov: 50 }}
         style={{
-          background: transparentBackground ? "transparent" : DEFAULT_ASCII_PAGE_BACKGROUND,
+          background:
+            pageBackgroundColor ??
+            (transparentBackground ? "transparent" : DEFAULT_ASCII_PAGE_BACKGROUND),
+          pointerEvents: enableDrag ? "auto" : "none",
+          touchAction: enableDrag ? "auto" : "pan-y",
         }}
         onCreated={({ gl, scene }) => {
           gl.toneMappingExposure = 0.6
-          if (transparentBackground) {
+          if (pageBackgroundColor) {
+            gl.setClearColor(new Color(pageBackgroundColor), 1)
+          } else if (transparentBackground) {
             gl.setClearColor(new Color(DEFAULT_ASCII_PAGE_BACKGROUND), 0)
             scene.background = null
           }
@@ -555,6 +801,7 @@ export function EffectScene({
           }
         }}
       >
+        <CanvasInteractionGate enableDrag={enableDrag} />
         <SceneWithDelayedComposer
           modelSrc={modelSrc}
           modelScale={modelScale}
@@ -562,6 +809,7 @@ export function EffectScene({
           modelRotation={modelRotation}
           asciiCellSize={asciiCellSize}
           transparentBackground={transparentBackground}
+          pageBackgroundColor={pageBackgroundColor}
           resolution={resolution}
           mousePos={mousePos}
           enableZoom={enableZoom}
@@ -570,9 +818,10 @@ export function EffectScene({
           float={float}
           embed={embed}
           postfx={asciiPostfx}
+          orbitSatellites={orbitSatellites}
+          enableDrag={enableDrag}
         />
       </Canvas>
     </div>
   )
 }
-

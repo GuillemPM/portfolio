@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 type Phase = "enter" | "exit" | "gone";
 
 const BLUE = "var(--color-on-tertiary-container)";
-const WHITE = "#ffffff";
+const TRACK = "#e4e4e7";
 
 export function PageLoader() {
   const [phase, setPhase] = useState<Phase>("enter");
@@ -88,10 +88,10 @@ export function PageLoader() {
   const percentDisplay = Math.min(100, Math.round(fillClamped));
   const fillGradient =
     fillClamped <= 0
-      ? `linear-gradient(to top, ${WHITE} 0%, ${WHITE} 100%)`
+      ? `linear-gradient(to top, ${TRACK} 0%, ${TRACK} 100%)`
       : fillClamped >= 100
         ? `linear-gradient(to top, ${BLUE} 0%, ${BLUE} 100%)`
-        : `linear-gradient(to top, ${BLUE} 0%, ${BLUE} ${fillClamped}%, ${WHITE} ${fillClamped}%, ${WHITE} 100%)`;
+        : `linear-gradient(to top, ${BLUE} 0%, ${BLUE} ${fillClamped}%, ${TRACK} ${fillClamped}%, ${TRACK} 100%)`;
 
   return (
     <div
@@ -123,7 +123,7 @@ export function PageLoader() {
             color: "transparent",
             WebkitTextFillColor: "transparent",
             filter:
-              "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.92)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.72)) drop-shadow(0 12px 28px rgba(0, 0, 0, 0.55)) drop-shadow(0 -1px 0 rgba(140, 175, 255, 0.22))",
+              "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08)) drop-shadow(0 4px 12px rgba(37, 99, 235, 0.12))",
           }}
         >
           GP.

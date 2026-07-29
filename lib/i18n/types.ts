@@ -2,51 +2,77 @@ export const locales = ["en", "es", "ca"] as const;
 export type Locale = (typeof locales)[number];
 export const defaultLocale: Locale = "es";
 
+export type CertificationId = "ab731" | "googleAiPro";
+export type SecondaryBadgeId =
+  | "googleAiFundamentals"
+  | "googleAiAppBuilding"
+  | "googleAiBrainstorming"
+  | "googleAiContentCreation"
+  | "googleAiDataAnalysis"
+  | "googleAiResearch"
+  | "googleAiWriting";
+
 export type Messages = {
-  nav: { solutions: string; contact: string; startProject: string };
-  widget: {
-    needHelp: string;
-    startCall: string;
-    inputPlaceholder: string;
-    inputPlaceholderNewConversation: string;
-  };
-  trust: { label: string };
-  solutions: {
-    title: string;
-    cards: {
-      custom: { title: string; text: string };
-      ai: { title: string; text: string };
-      web: { title: string; text: string };
-      data: { title: string; text: string };
-    };
-  };
-  cta: {
-    hero: string;
-    solutions: string;
-    process: string;
+  nav: {
+    about: string;
+    blog: string;
     contact: string;
-  };
-  target: { title: string; subtitle: string; sectors: [string, string, string, string, string, string, string] };
-  results: { title: string; items: [string, string, string] };
-  process: { title: string; steps: [string, string, string] };
-  why: { title: string; items: [string, string, string, string, string] };
-  contact: {
-    title: string;
-    body: string;
-    whatsappPrefix: string;
-    whatsappLink: string;
-    scheduleTitle: string;
-    scheduleBody: string;
-    scheduleCta: string;
-    whatsappTitle: string;
-    whatsappBody: string;
-    backHome: string;
+    connect: string;
   };
   hero: {
     name: string;
-    titleBefore: string;
-    titleHighlight: string;
+    headline: string;
+    subline: string;
+  };
+  cta: {
+    hero: string;
+    blog: string;
+    contact: string;
+    viewAllPosts: string;
+  };
+  about: {
+    title: string;
+    paragraphs: string[];
+  };
+  focus: {
+    title: string;
+    areas: [
+      { title: string; text: string },
+      { title: string; text: string },
+      { title: string; text: string },
+      { title: string; text: string },
+    ];
+  };
+  certifications: {
+    title: string;
+    subtitle: string;
+    comingSoon: string;
+    moreOnTheWay: string;
+    issued: string;
+    credentialId: string;
+    viewCredential: string;
+    secondaryTitle: string;
+    items: Record<
+      CertificationId,
+      { title: string; issuer: string; description: string }
+    >;
+    secondaryItems: Record<SecondaryBadgeId, { title: string; issuer: string }>;
+  };
+  blog: {
+    title: string;
+    subtitle: string;
+    empty: string;
+    readMore: string;
+    backToBlog: string;
+    latestTitle: string;
+  };
+  contact: {
+    title: string;
     body: string;
+    linkedInTitle: string;
+    linkedInBody: string;
+    linkedInCta: string;
+    backHome: string;
   };
   footer: { line: string; source: string };
 };
