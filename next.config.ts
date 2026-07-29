@@ -28,6 +28,9 @@ const cspDirectives = [
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.36"],
+  experimental: {
+    globalNotFound: true,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     qualities: [75, 90],

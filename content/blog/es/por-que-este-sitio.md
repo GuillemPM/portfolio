@@ -3,6 +3,7 @@ id: why-this-site
 title: Por qué existe este sitio
 description: Un espacio personal para apuntes sobre Business Central, software y lo que aprendo. Aparte del trabajo con clientes.
 date: 2026-07-29
+author: Guillermo Padilla Martin
 ---
 
 Llevo años entregando extensiones de ERP, integraciones y, cada vez más, flujos asistidos por IA para empresas reales. La mayor parte de ese trabajo es privado, y así debe ser.

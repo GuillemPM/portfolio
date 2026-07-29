@@ -4,6 +4,7 @@ import { BlogPostPage } from "@/components/portfolio/BlogPages";
 import {
   getAllPostSlugs,
   getPostBySlug,
+  getPostLocaleHrefs,
   postLanguageAlternates,
 } from "@/lib/blog/posts";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
@@ -13,7 +14,6 @@ import {
   localizedUrl,
   openGraphLocale,
   resolveSiteLocale,
-  siteTitle,
 } from "@/lib/i18n/siteMetadata";
 import { locales, type Locale } from "@/lib/i18n/types";
 
@@ -58,14 +58,14 @@ export async function generateMetadata({
       url: canonical,
       siteName: SITE_NAME,
       locale: openGraphLocale(locale),
-      authors: [SITE_NAME],
+      authors: [post.author],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description: post.description,
     },
-    authors: [{ name: SITE_NAME, url: SITE_URL }],
+    authors: [{ name: post.author, url: SITE_URL }],
   };
 }
 
@@ -98,13 +98,13 @@ export default async function BlogPostRoute({
     author: {
       "@type": "Person",
       "@id": `${SITE_URL}/#person`,
-      name: SITE_NAME,
+      name: post.author,
       url: SITE_URL,
     },
     publisher: {
       "@type": "Person",
       "@id": `${SITE_URL}/#person`,
-      name: SITE_NAME,
+      name: post.author,
       url: SITE_URL,
     },
     url: canonical,
@@ -117,7 +117,7 @@ export default async function BlogPostRoute({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <BlogPostPage post={post} />
+        <BlogPostPage localeHrefs={getPostLocaleHrefs(post.id)} post={post} />
       </>
     </LanguageProvider>
   );

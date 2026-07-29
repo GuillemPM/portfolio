@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import Markdown from "react-markdown";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getLocalizedPath } from "@/lib/i18n/getLocalizedPath";
+import {
+  LocaleHrefProvider,
+  type LocaleHrefMap,
+} from "@/lib/i18n/LocaleHrefContext";
 import type { BlogPostMeta } from "@/lib/blog/types";
 import { primaryButtonClass } from "./PortfolioHome";
 import { SiteNav } from "./SiteNav";
@@ -66,34 +70,46 @@ export function BlogIndexPage({ posts }: { posts: BlogPostMeta[] }): React.React
 
 export function BlogPostPage({
   post,
+  localeHrefs,
 }: {
-  post: { title: string; description: string; date: string; content: string };
+  post: {
+    title: string;
+    description: string;
+    date: string;
+    author: string;
+    content: string;
+  };
+  localeHrefs: LocaleHrefMap;
 }): React.ReactElement {
   const { messages: m, locale } = useLanguage();
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen flex-col bg-primary-container text-on-surface antialiased">
-      <SiteNav m={m} />
-      <main className="mx-auto w-full max-w-8xl grow px-8 pb-24 pt-site-nav-content md:px-16">
-        <Link
-          className={`${primaryButtonClass} mb-12 inline-flex px-6 py-3 text-[10px]`}
-          href={getLocalizedPath(pathname, "/blog")}
-        >
-          <span className="relative z-10">{m.blog.backToBlog}</span>
-        </Link>
-        <article className="max-w-3xl">
-          <time className="text-label-caps text-[10px] text-on-surface-variant" dateTime={post.date}>
-            {formatPostDate(post.date, locale)}
-          </time>
-          <h1 className="text-headline-lg mt-4 text-on-background">{post.title}</h1>
-          <p className="text-body-lg mt-6 text-on-surface-variant">{post.description}</p>
-          <div className="blog-prose text-body-lg mt-12 text-on-surface-variant">
-            <MarkdownContent content={post.content} />
-          </div>
-        </article>
-      </main>
-    </div>
+    <LocaleHrefProvider hrefs={localeHrefs}>
+      <div className="flex min-h-screen flex-col bg-primary-container text-on-surface antialiased">
+        <SiteNav m={m} />
+        <main className="mx-auto w-full max-w-8xl grow px-8 pb-24 pt-site-nav-content md:px-16">
+          <Link
+            className={`${primaryButtonClass} mb-12 inline-flex px-6 py-3 text-[10px]`}
+            href={getLocalizedPath(pathname, "/blog")}
+          >
+            <span className="relative z-10">{m.blog.backToBlog}</span>
+          </Link>
+          <article className="max-w-3xl">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-label-caps text-[10px] text-on-surface-variant">
+              <time dateTime={post.date}>{formatPostDate(post.date, locale)}</time>
+              <span aria-hidden="true">·</span>
+              <span>{post.author}</span>
+            </div>
+            <h1 className="text-headline-lg mt-4 text-on-background">{post.title}</h1>
+            <p className="text-body-lg mt-6 text-on-surface-variant">{post.description}</p>
+            <div className="blog-prose text-body-lg mt-12 text-on-surface-variant">
+              <MarkdownContent content={post.content} />
+            </div>
+          </article>
+        </main>
+      </div>
+    </LocaleHrefProvider>
   );
 }
 

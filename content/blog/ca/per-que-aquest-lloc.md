@@ -3,6 +3,7 @@ id: why-this-site
 title: Per què existeix aquest lloc
 description: Un espai personal per apunts sobre Business Central, software i el que aprendo. A part de la feina amb clients.
 date: 2026-07-29
+author: Guillermo Padilla Martin
 ---
 
 Porto anys lliurant extensions d'ERP, integracions i, cada cop més, fluxos assistits per IA per a empreses reals. La major part d'aquesta feina és privada, i així ha de ser.

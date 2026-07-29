@@ -74,5 +74,12 @@ export type Messages = {
     linkedInCta: string;
     backHome: string;
   };
+  notFound: {
+    code: string;
+    title: string;
+    body: string;
+    backHome: string;
+    viewBlog: string;
+  };
   footer: { line: string; source: string };
 };

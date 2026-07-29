@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { locales, type Locale } from "@/lib/i18n/types";
-import { languageAlternates, localizedUrl } from "@/lib/i18n/siteMetadata";
+import {
+  SITE_NAME,
+  languageAlternates,
+  localizedUrl,
+} from "@/lib/i18n/siteMetadata";
 import type { BlogPost, BlogPostMeta } from "./types";
 
 const CONTENT_DIR = path.join(process.cwd(), "content/blog");
@@ -43,6 +47,7 @@ function toMeta(
     title: meta.title ?? slug,
     description: meta.description ?? "",
     date: meta.date ?? "",
+    author: meta.author ?? SITE_NAME,
   };
 }
 
@@ -109,4 +114,16 @@ export function postLanguageAlternates(id: string): Record<string, string> {
     `/blog/${defaultPost.slug}`,
   );
   return languages;
+}
+
+/** Relative pathnames for the language switcher (no origin). */
+export function getPostLocaleHrefs(id: string): Partial<Record<Locale, string>> {
+  const hrefs: Partial<Record<Locale, string>> = {};
+  for (const post of getPostTranslations(id)) {
+    hrefs[post.locale] =
+      post.locale === "es"
+        ? `/blog/${post.slug}`
+        : `/${post.locale}/blog/${post.slug}`;
+  }
+  return hrefs;
 }

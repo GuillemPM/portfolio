@@ -3,6 +3,7 @@ id: why-this-site
 title: Why this site exists
 description: A personal space for notes on Business Central, software, and what I'm learning. Separate from client work.
 date: 2026-07-29
+author: Guillermo Padilla Martin
 ---
 
 I have spent years shipping ERP extensions, integrations, and increasingly AI-assisted workflows for real companies. Most of that work stays private, which is how it should be.

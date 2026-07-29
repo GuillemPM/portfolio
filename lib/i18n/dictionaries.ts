@@ -119,6 +119,13 @@ const en: Messages = {
     linkedInCta: "Open LinkedIn",
     backHome: "Back to home",
   },
+  notFound: {
+    code: "404",
+    title: "Page not found",
+    body: "That URL does not exist, or the page moved. Try the home page or the blog.",
+    backHome: "Back to home",
+    viewBlog: "Read the blog",
+  },
   footer: {
     line: "© 2026 GUILLERMO PADILLA MARTIN. ENGINEERED SILENCE.",
     source: "Source",
@@ -244,6 +251,13 @@ const es: Messages = {
     linkedInCta: "Abrir LinkedIn",
     backHome: "Volver al inicio",
   },
+  notFound: {
+    code: "404",
+    title: "Página no encontrada",
+    body: "Esa URL no existe, o la página se ha movido. Prueba el inicio o el blog.",
+    backHome: "Volver al inicio",
+    viewBlog: "Leer el blog",
+  },
   footer: {
     line: "© 2026 GUILLERMO PADILLA MARTIN. ENGINEERED SILENCE.",
     source: "Source",
@@ -368,6 +382,13 @@ const ca: Messages = {
     linkedInBody: "Bon lloc per novetats i missatges més llargs.",
     linkedInCta: "Obrir LinkedIn",
     backHome: "Tornar a l'inici",
+  },
+  notFound: {
+    code: "404",
+    title: "Pàgina no trobada",
+    body: "Aquesta URL no existeix, o la pàgina s'ha mogut. Prova l'inici o el blog.",
+    backHome: "Tornar a l'inici",
+    viewBlog: "Llegir el blog",
   },
   footer: {
     line: "© 2026 GUILLERMO PADILLA MARTIN. ENGINEERED SILENCE.",

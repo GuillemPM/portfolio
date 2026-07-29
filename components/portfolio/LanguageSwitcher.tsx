@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
+import { useLocaleHrefs } from "@/lib/i18n/LocaleHrefContext";
 import { locales, type Locale } from "@/lib/i18n/types";
 
 const labels: Record<Locale, string> = {
@@ -15,25 +16,30 @@ const base =
 const idle = "text-on-surface-variant hover:text-blue-600";
 const active = "text-blue-600";
 
+function defaultPathForLocale(pathname: string, code: Locale): string {
+  const segments = pathname.split("/").filter(Boolean);
+  const first = segments[0];
+  const restSegments =
+    first && (locales as readonly string[]).includes(first)
+      ? segments.slice(1)
+      : segments;
+  const suffix = restSegments.length ? `/${restSegments.join("/")}` : "";
+
+  if (code === "es") {
+    return suffix || "/";
+  }
+  return `/${code}${suffix}`;
+}
+
 export function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
   const { locale } = useLanguage();
+  const localeHrefs = useLocaleHrefs();
 
   const handleLocaleChange = (code: Locale) => {
-    const segments = pathname.split("/").filter(Boolean);
-    const first = segments[0];
-    const restSegments =
-      first && (locales as readonly string[]).includes(first)
-        ? segments.slice(1)
-        : segments;
-    const suffix = restSegments.length ? `/${restSegments.join("/")}` : "";
-
-    if (code === "es") {
-      router.push(suffix || "/");
-    } else {
-      router.push(`/${code}${suffix}`);
-    }
+    const href = localeHrefs?.[code] ?? defaultPathForLocale(pathname, code);
+    router.push(href);
   };
 
   return (
