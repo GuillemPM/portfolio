@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import type { ComponentPropsWithoutRef } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
-import { EffectComposer } from "@react-three/postprocessing"
 import { Environment, OrbitControls, useGLTF } from "@react-three/drei"
 import {
   CanvasTexture,
@@ -578,7 +577,7 @@ function SceneWithDelayedComposer({
   return (
     <>
       {sceneBackground ? <color attach="background" args={[sceneBackground]} /> : null}
-      <Environment preset="studio" background={false} />
+      <Environment files="/hdri/studio_small_03_1k.hdr" background={false} />
       {embed ? <SolutionCardLights /> : <HeroAreaLights />}
       <CameraHoverZoom isHovered={isHovered} />
       <Suspense key={modelSrc} fallback={null}>
