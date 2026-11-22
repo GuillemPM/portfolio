@@ -255,7 +255,7 @@ Eso no la hace maliciosa, pero es una capacidad a tener en cuenta al evaluar ext
 
 Curiosamente, no descubrí esto investigando vulnerabilidades de seguridad.
 
-Simplemente había olvidado una contraseña que había guardado como `SecretText` y quería recuperarla.
+Un compañero había olvidado una contraseña guardada como `SecretText`, y yo intenté ayudarle a recuperarla.
 
 Por supuesto, `Unwrap()` no era una opción en Business Central SaaS.
 
@@ -265,7 +265,7 @@ Fue entonces cuando me di cuenta de algo: **en realidad no necesitaba leer la co
 
 Y eso me llevó a `HttpContent.WriteFrom()`.
 
-Lo que empezó como un intento de recuperar mi propia contraseña olvidada me hizo ver que el mismo enfoque podría ser abusado por una extensión con acceso a las credenciales de otra persona.
+Lo que empezó como un intento de ayudar a un compañero a recuperar una contraseña olvidada me hizo ver que el mismo enfoque podría ser abusado por una extensión con acceso a las credenciales de otra persona.
 
 `SecretText` hace exactamente lo que está diseñado para hacer. El error es asumir que hace más.
 

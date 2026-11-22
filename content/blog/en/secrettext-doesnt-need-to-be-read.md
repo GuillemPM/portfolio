@@ -255,7 +255,7 @@ That doesn't make it malicious, but it's a capability worth considering when eva
 
 Funny enough, I didn't discover this while researching security vulnerabilities.
 
-I had simply forgotten a password that I'd stored as `SecretText`, and I wanted to recover it.
+A colleague had forgotten a password stored as `SecretText`, and I tried to help recover it.
 
 Of course, `Unwrap()` wasn't an option in Business Central SaaS.
 
@@ -265,7 +265,7 @@ That's when I realized something: **I didn't actually need to read the password 
 
 And that led me to `HttpContent.WriteFrom()`.
 
-What started as an attempt to recover my own forgotten password made me realize that the exact same approach could be abused by an extension with access to somebody else's credentials.
+What started as an attempt to help a colleague recover a forgotten password made me realize that the exact same approach could be abused by an extension with access to somebody else's credentials.
 
 `SecretText` does exactly what it's designed to do. The mistake is assuming it does more.
 

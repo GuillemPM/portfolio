@@ -255,7 +255,7 @@ Això no la fa maliciosa, però és una capacitat a tenir en compte quan avalues
 
 Curiosament, no ho vaig descobrir investigant vulnerabilitats de seguretat.
 
-Simplement havia oblidat una contrasenya que havia desat com a `SecretText` i volia recuperar-la.
+Un company havia oblidat una contrasenya desada com a `SecretText`, i jo vaig intentar ajudar-lo a recuperar-la.
 
 És clar, `Unwrap()` no era una opció a Business Central SaaS.
 
@@ -265,7 +265,7 @@ Va ser llavors quan em vaig adonar d'una cosa: **en realitat no necessitava lleg
 
 I això em va portar a `HttpContent.WriteFrom()`.
 
-El que va començar com un intent de recuperar la meva pròpia contrasenya oblidada em va fer veure que el mateix enfocament podria ser abusat per una extensió amb accés a les credencials d'una altra persona.
+El que va començar com un intent d'ajudar un company a recuperar una contrasenya oblidada em va fer veure que el mateix enfocament podria ser abusat per una extensió amb accés a les credencials d'una altra persona.
 
 `SecretText` fa exactament el que està dissenyat per fer. L'error és assumir que fa més.
 
