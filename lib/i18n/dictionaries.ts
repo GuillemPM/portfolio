@@ -129,6 +129,7 @@ const en: Messages = {
   footer: {
     line: "© 2026 GUILLERMO PADILLA MARTIN. ENGINEERED SILENCE.",
     source: "Source",
+    buyMeACoffee: "Buy Me a Coffee",
   },
 };
 
@@ -261,6 +262,7 @@ const es: Messages = {
   footer: {
     line: "© 2026 GUILLERMO PADILLA MARTIN. ENGINEERED SILENCE.",
     source: "Source",
+    buyMeACoffee: "Invítame un café",
   },
 };
 
@@ -393,6 +395,7 @@ const ca: Messages = {
   footer: {
     line: "© 2026 GUILLERMO PADILLA MARTIN. ENGINEERED SILENCE.",
     source: "Font",
+    buyMeACoffee: "Convida'm a un cafè",
   },
 };
 

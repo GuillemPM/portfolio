@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BlogMarkdown } from "@/components/portfolio/BlogMarkdown";
 import { BlogPostPage } from "@/components/portfolio/BlogPages";
 import {
   getAllPostSlugs,
@@ -117,7 +118,17 @@ export default async function BlogPostRoute({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <BlogPostPage localeHrefs={getPostLocaleHrefs(post.id)} post={post} />
+        <BlogPostPage
+          localeHrefs={getPostLocaleHrefs(post.id)}
+          post={{
+            title: post.title,
+            description: post.description,
+            date: post.date,
+            author: post.author,
+          }}
+        >
+          <BlogMarkdown content={post.content} />
+        </BlogPostPage>
       </>
     </LanguageProvider>
   );

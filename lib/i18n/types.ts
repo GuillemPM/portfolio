@@ -81,5 +81,5 @@ export type Messages = {
     backHome: string;
     viewBlog: string;
   };
-  footer: { line: string; source: string };
+  footer: { line: string; source: string; buyMeACoffee: string };
 };

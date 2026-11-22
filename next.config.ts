@@ -7,6 +7,7 @@ const scriptSrc = [
   "'self'",
   "'unsafe-inline'",
   "https://va.vercel-scripts.com",
+  "https://giscus.app",
   "'wasm-unsafe-eval'",
   ...(isDev ? ["'unsafe-eval'" as const] : []),
 ].join(" ");
@@ -33,6 +34,13 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     qualities: [75, 90],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.buymeacoffee.com",
+        pathname: "/buttons/**",
+      },
+    ],
   },
   async headers() {
     const headers: { key: string; value: string }[] = [

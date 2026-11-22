@@ -132,10 +132,19 @@
   border-color: color-mix(in srgb, var(--color-on-background) 8%, transparent);
 }
 
+html {
+  /* Site is light-only; keeps transparent embeds (e.g. Giscus) from painting black under OS dark mode. */
+  color-scheme: light;
+}
+
 body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   background-color: var(--color-background);
   color: var(--color-on-background);
+}
+
+iframe.giscus-frame {
+  color-scheme: light;
 }
 
 :root {
@@ -174,4 +183,19 @@ html ::-moz-selection,
 ::-moz-selection {
   background-color: #486cff;
   color: #ffffff;
+}
+
+/* Shiki code blocks in blog posts (AL grammar + github-light) */
+.blog-code .shiki {
+  margin: 0;
+  background: transparent !important;
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.blog-code .shiki code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: inherit;
 }

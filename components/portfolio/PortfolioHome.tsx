@@ -71,7 +71,7 @@ function SiteFooter({ m }: { m: Messages }): React.ReactElement {
             {m.footer.line}
           </div>
         </div>
-        <div className="flex gap-8">
+        <div className="flex flex-wrap items-center justify-end gap-8">
           <a
             className="text-[9px] font-sans uppercase tracking-widest text-on-surface-variant opacity-100 transition-colors duration-300 hover:text-blue-600 hover:opacity-80"
             href="https://www.linkedin.com/in/gpadillam"
@@ -87,6 +87,20 @@ function SiteFooter({ m }: { m: Messages }): React.ReactElement {
             target="_blank"
           >
             GitHub
+          </a>
+          <a
+            className="inline-flex shrink-0 transition-opacity duration-300 hover:opacity-90"
+            href="https://buymeacoffee.com/guillempm"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <Image
+              alt={m.footer.buyMeACoffee}
+              height={40}
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+              unoptimized
+              width={145}
+            />
           </a>
         </div>
       </div>

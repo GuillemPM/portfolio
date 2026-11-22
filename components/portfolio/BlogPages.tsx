@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Markdown from "react-markdown";
 import { useLanguage } from "@/lib/i18n/LanguageProvider";
 import { getLocalizedPath } from "@/lib/i18n/getLocalizedPath";
 import {
@@ -10,6 +9,7 @@ import {
   type LocaleHrefMap,
 } from "@/lib/i18n/LocaleHrefContext";
 import type { BlogPostMeta } from "@/lib/blog/types";
+import { GiscusComments } from "./GiscusComments";
 import { primaryButtonClass } from "./PortfolioHome";
 import { SiteNav } from "./SiteNav";
 
@@ -24,6 +24,28 @@ function formatPostDate(date: string, locale: string): string {
   } catch {
     return date;
   }
+}
+
+const inlineCodeClassName =
+  "rounded-sm bg-surface-container-low px-1.5 py-0.5 font-mono text-[0.9em] text-on-background";
+
+/** Renders `backtick` spans like blog body inline code. */
+function InlineMarkdownText({ text }: { text: string }): React.ReactElement {
+  const parts = text.split(/(`[^`]+`)/g);
+  return (
+    <>
+      {parts.map((part, index) => {
+        if (part.startsWith("`") && part.endsWith("`") && part.length > 1) {
+          return (
+            <code className={inlineCodeClassName} key={index}>
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </>
+  );
 }
 
 export function BlogIndexPage({ posts }: { posts: BlogPostMeta[] }): React.ReactElement {
@@ -54,7 +76,9 @@ export function BlogIndexPage({ posts }: { posts: BlogPostMeta[] }): React.React
                   <h2 className="mt-3 text-2xl font-medium text-on-background group-hover:text-blue-600 transition-colors">
                     {post.title}
                   </h2>
-                  <p className="text-body-md mt-3 text-on-surface-variant/80">{post.description}</p>
+                  <p className="text-body-md mt-3 text-on-surface-variant/80">
+                    <InlineMarkdownText text={post.description} />
+                  </p>
                   <span className="text-label-caps mt-6 inline-block text-[10px] text-on-tertiary-container">
                     {m.blog.readMore}
                   </span>
@@ -71,15 +95,16 @@ export function BlogIndexPage({ posts }: { posts: BlogPostMeta[] }): React.React
 export function BlogPostPage({
   post,
   localeHrefs,
+  children,
 }: {
   post: {
     title: string;
     description: string;
     date: string;
     author: string;
-    content: string;
   };
   localeHrefs: LocaleHrefMap;
+  children: React.ReactNode;
 }): React.ReactElement {
   const { messages: m, locale } = useLanguage();
   const pathname = usePathname();
@@ -102,45 +127,16 @@ export function BlogPostPage({
               <span>{post.author}</span>
             </div>
             <h1 className="text-headline-lg mt-4 text-on-background">{post.title}</h1>
-            <p className="text-body-lg mt-6 text-on-surface-variant">{post.description}</p>
+            <p className="text-body-lg mt-6 text-on-surface-variant">
+              <InlineMarkdownText text={post.description} />
+            </p>
             <div className="blog-prose text-body-lg mt-12 text-on-surface-variant">
-              <MarkdownContent content={post.content} />
+              {children}
             </div>
+            <GiscusComments locale={locale} />
           </article>
         </main>
       </div>
     </LocaleHrefProvider>
-  );
-}
-
-function MarkdownContent({ content }: { content: string }): React.ReactElement {
-  return (
-    <Markdown
-      components={{
-        p: ({ children }) => <p className="mb-6 leading-relaxed">{children}</p>,
-        strong: ({ children }) => <strong className="font-medium text-on-background">{children}</strong>,
-        a: ({ href, children }) => (
-          <a
-            className="text-on-tertiary-container underline-offset-4 hover:underline"
-            href={href}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {children}
-          </a>
-        ),
-        ul: ({ children }) => <ul className="mb-6 list-disc space-y-2 pl-6">{children}</ul>,
-        ol: ({ children }) => <ol className="mb-6 list-decimal space-y-2 pl-6">{children}</ol>,
-        li: ({ children }) => <li>{children}</li>,
-        h2: ({ children }) => (
-          <h2 className="mb-4 mt-10 text-2xl font-medium text-on-background">{children}</h2>
-        ),
-        h3: ({ children }) => (
-          <h3 className="mb-3 mt-8 text-xl font-medium text-on-background">{children}</h3>
-        ),
-      }}
-    >
-      {content}
-    </Markdown>
   );
 }
